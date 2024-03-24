@@ -5,11 +5,15 @@
 {% block body %}
 <h2>Вход</h2>
     {% if error %}
-    <p id="error">{{ error }}</p>
+        <p id="error">{{ error }}</p>
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        {{ login_form }}
+        {% for field in login_form  %}
+            <div>
+                {{ field.label_tag }}{{ field }}
+            </div>
+        {% endfor %}
         <input type="submit" value="Вход">
     </form>
 {% endblock %}

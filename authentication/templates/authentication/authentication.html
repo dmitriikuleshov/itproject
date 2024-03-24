@@ -5,11 +5,15 @@
 {% block body %}
 <h2>Регистрация</h2>
     {% if error %}
-    <p id="error">{{ error }}</p>
+        <p id="error">{{ error }}</p>
     {% endif %}
     <form method="post">
         {% csrf_token %}
-        {{ user_form }}
+        {% for field in user_form  %}
+            <div>
+                {{ field.label_tag }}{{ field }}
+            </div>
+        {% endfor %}
         <input type="submit" value="Регистрация">
     </form>
 {% endblock %}
