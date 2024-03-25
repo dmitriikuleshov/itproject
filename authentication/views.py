@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import make_password, check_password
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .forms import UserForm, LoginForm
+from main.forms import LinkForm
 from .models import User
 
 
@@ -53,7 +54,7 @@ def login_view(request):
             if User.objects.filter(login=login).exists():
                 user = User.objects.get(login=login)
                 if check_password(form.cleaned_data['password'], user.password):
-                    response = render(request, 'main/index.html', {'login': login})
+                    response = redirect('/')
                     response.set_cookie('login', login)
                     return response
                 else:

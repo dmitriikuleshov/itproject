@@ -1,7 +1,8 @@
 from django.shortcuts import render
+from .forms import LinkForm
 
 
-def index(request):
+def index_view(request):
     """
     Высылка главной страницы,
     проверка, аутентифицирован ли пользователь,
@@ -12,10 +13,10 @@ def index(request):
     if 'login' in request.COOKIES:
         login = request.COOKIES['login']
 
-    return render(request, 'main/index.html', {'login': login})
+    return render(request, 'main/index.html', {'login': login, 'form': LinkForm()})
 
 
-def logout(request):
+def logout_view(request):
     """
     Выход из учётной записи путём
     удаления cookie.

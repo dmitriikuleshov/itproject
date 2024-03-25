@@ -19,6 +19,11 @@
             <a href="{% url 'login' %}">Войти</a>
         {% else %}
             <h1>Добро пожаловать, {{ login }}</h1><br>
+            <form method="post" action="{% url 'user_info' %}">
+            {% csrf_token %}
+                {{ form.link }}
+                <input type="submit" value="Отправить">
+            </form><br>
             <a href="{% url 'logout' %}">Выйти</a>
         {% endif %}
     </body>

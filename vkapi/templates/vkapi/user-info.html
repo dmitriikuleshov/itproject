@@ -1,0 +1,16 @@
+{% extends 'vkapi/layout.html' %}
+
+{% block title %}{{ name }}{% endblock %}
+
+{% block body %}
+    {% if not error %}
+        <h1>{{ first_name }} {{ last_name }}</h1>
+        <h2>{{ bdate }}</h2>
+        {% if city %}
+            <h3>Город {{ city.title }}</h3>
+        {% endif %}<br>
+    {% else %}
+        <p id="error">Ошибка! Данные объекта по ссылке не доступны.</p>
+    {% endif %}
+    <input type="button" onclick="window.location.href = '/'" value="На главную">
+{% endblock %}
