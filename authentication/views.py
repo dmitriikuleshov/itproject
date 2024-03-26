@@ -1,7 +1,6 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import render, redirect
 from .forms import UserForm, LoginForm
-from main.forms import LinkForm
 from .models import User
 
 
@@ -12,7 +11,6 @@ def auth_view(request):
     и корректность пароля, процедура регистрации,
     установка cookie.
     """
-
     user_form = UserForm()
 
     if request.method == 'POST':
@@ -44,7 +42,6 @@ def login_view(request):
     Вход в систему, проверка существования пользователя
     и корректности пароля, установка cookie.
     """
-
     login_form = LoginForm()
 
     if request.method == 'POST':
