@@ -11,6 +11,12 @@
               integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
               crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'main/main.css' %}">
+        <script>
+            function link() {
+                const _link = document.getElementById('inp').value;
+                window.location.href = '{% url 'user_info' %}?link=' + _link;
+            }
+        </script>
         <title>VkAnalyser</title>
     </head>
     <body>
@@ -20,11 +26,9 @@
             <a href="{% url 'login' %}">Войти</a>
         {% else %}
             <h1>Добро пожаловать, {{ login }}</h1><br>
-            <form method="post" action="{% url 'user_info' %}">
-            {% csrf_token %}
-                {{ form.link }}
-                <input type="submit" value="Отправить">
-            </form><br>
+                <input type="text" id="inp" placeholder="Ссылка на аккаунт...">
+                <input type="button" onclick="link()" value="Отправить">
+            <br>
         {% endif %}
         <div id="sidebar">
             <h3>VkAnalyser&nbsp;&nbsp;<b id="close">✕</b></h3><hr>
@@ -32,7 +36,6 @@
                 <a href="{% url 'logout' %}">Выйти</a>
             {% endif %}
         </div>
-
     </body>
     <script src="{% static 'main/main.js' %}"></script>
 </html>

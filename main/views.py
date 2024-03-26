@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from .forms import LinkForm
 
 
 def index_view(request):
@@ -12,7 +11,7 @@ def index_view(request):
     if 'login' in request.COOKIES:
         login = request.COOKIES['login']
 
-    return render(request, 'main/index.html', {'login': login, 'form': LinkForm()})
+    return render(request, 'main/index.html', {'login': login})
 
 
 def logout_view(request):

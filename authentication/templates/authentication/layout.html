@@ -11,9 +11,16 @@
               integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
               crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'authentication/authentication.css' %}">
+        <link rel="stylesheet" href="{% static 'main/main.css' %}">
         <title>{% block title %}{% endblock %}</title>
     </head>
     <body>
+        <h2 id="open-bar">≡</h2>
         {% block body %}{% endblock %}
+        <div id="sidebar">
+            <h3>VkAnalyser&nbsp;&nbsp;<b id="close">✕</b></h3><hr>
+            <a href="{% url 'index' %}">На главную</a>
+        </div>
     </body>
+    <script src="{% static 'main/main.js' %}"></script>
 </html>
