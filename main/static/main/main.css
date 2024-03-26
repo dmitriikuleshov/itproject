@@ -1,5 +1,6 @@
 body {
-    margin: 40px;
+    margin: 40px 40px 40px 60px;
+    background: #eef6ff;
 }
 
 a {
@@ -9,4 +10,30 @@ a {
 
 a:hover {
     color: aqua;
+}
+
+#sidebar {
+    display: none;
+    overflow-y: auto;
+    position: fixed;
+    z-index: 999999;
+    top: 0;
+    left: 0;
+    background: #f1f1f1;
+    transition: all 0.5s;
+    width: 250px;
+    height: 100vh;
+    box-shadow: 5px 0 5px rgba(0, 0, 0, 0.1);
+    padding: 40px 20px;
+}
+
+#close {
+    cursor: pointer;
+}
+
+#open-bar {
+    position: fixed;
+    top: 40px;
+    left: 20px;
+    cursor: pointer;
 }
