@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 import os
 
 from .tools import Vk
+from main.models import VkAccount
 
 
 def user_info_view(request):
@@ -13,7 +14,10 @@ def user_info_view(request):
         link = request.GET.get('link')
         vk = Vk(token=os.environ['VK_TOKEN'])
         try:
-            return render(request, 'vkapi/user-info.html', vk.get_info(link))
+            response = render(request, 'vkapi/user-info.html', vk.get_info(link))
+            if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
+                VkAccount(link=link, creator=request.COOKIES['login']).save()
+            return response
         except (TypeError, IndexError):
             return render(request, 'vkapi/user-info.html', {'error': True})
     else:

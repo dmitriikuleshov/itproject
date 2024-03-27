@@ -11,6 +11,7 @@
               integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
               crossorigin="anonymous">
         <link rel="stylesheet" href="{% static 'main/main.css' %}">
+        <link rel="icon" href="{% static 'favicon.ico' %}">
         <script>
             function link() {
                 const _link = document.getElementById('inp').value;
@@ -21,17 +22,28 @@
     </head>
     <body>
         <h2 id="open-bar">≡</h2>
+
         {% if not login %}
             <a href="{% url 'authentication' %}">Зарегистрироваться</a><br>
             <a href="{% url 'login' %}">Войти</a>
         {% else %}
             <h1>Добро пожаловать, {{ login }}</h1><br>
-                <input type="text" id="inp" placeholder="Ссылка на аккаунт...">
-                <input type="button" onclick="link()" value="Отправить">
+            <input type="text" id="inp" placeholder="Ссылка на аккаунт...">
+            <input type="button" onclick="link()" value="Отправить">
+
+            {% if links %}
+                <hr><h6>Ранее запрашиваемые аккаунты:</h6><br>
+                {% for elem in links %}
+                    <a href="{% url 'user_info' %}?link={{ elem }}">{{ elem }}</a><br>
+                {% endfor %}
+            {% endif %}
+
             <br>
         {% endif %}
+
         <div id="sidebar">
             <h3>VkAnalyser&nbsp;&nbsp;<b id="close">✕</b></h3><hr>
+
             {% if login %}
                 <a href="{% url 'logout' %}">Выйти</a>
             {% endif %}

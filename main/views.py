@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 
+from .models import VkAccount
+
 
 def index_view(request):
     """
@@ -11,7 +13,8 @@ def index_view(request):
     if 'login' in request.COOKIES:
         login = request.COOKIES['login']
 
-    return render(request, 'main/index.html', {'login': login})
+    return render(request, 'main/index.html',
+                  {'login': login, 'links': VkAccount.objects.filter(creator=login)})
 
 
 def logout_view(request):
