@@ -1,5 +1,6 @@
 import re
 import vk_api
+from datetime import datetime
 
 
 class Vk:
@@ -67,3 +68,79 @@ class Vk:
                                           'is_favorite, is_hidden_from_feed, timezone, screen_name, '
                                           'maiden_name, crop_photo, is_friend, friend_status, '
                                           'career, military, blacklisted, blacklisted_by_me')[0]
+
+    @staticmethod
+    def valid(key: str, obj: dict):
+        """
+        Метод, возвращающий значение по ключу словаря
+        или None в случае отсутствия введённого ключа ва словаре
+        :param key: str
+        :param obj: dict
+        :return: Any
+        """
+        if key in obj.keys():
+            return obj[key]
+        return None
+
+    def get_gg(self, link: str, items_count: int = 5) -> dict:
+        """
+        Метод для получения подробных сведений о пользователе
+        VK и возвращения словаря с ними
+        :param link: str
+        :param items_count: int
+        :return: dict
+        """
+        _id = self.get_id_from_link(link)
+        raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, country, city, activities, '
+                                                      'books, education, games, interests, movies, music, personal, '
+                                                      'relatives, counters')[0]
+        friends_ids = self.__vk.friends.get(user_id=_id, order='hints')
+        friends, sub_users, sub_groups = [], [], []
+
+        for elem in friends_ids['items'][:items_count]:
+            d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
+            friends.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
+
+        subs_ids = self.__vk.users.getSubscriptions(user_id=_id)
+        for elem in subs_ids['users']['items'][:items_count]:
+            d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
+            sub_users.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
+
+        for elem in subs_ids['groups']['items'][:items_count]:
+            d = self.__vk.groups.getById(group_id=elem, fields='name, screen_name')[0]
+            sub_groups.append([d['name'], f'https://vk.com/{d["screen_name"]}'])
+
+        posts = self.__vk.wall.get(owner_id=_id, count=100)
+
+        data = {
+            'first_name': self.valid('first_name', raw),
+            'last_name': self.valid('last_name', raw),
+            'birthday': self.valid('bdate', raw),
+            'country': raw['country']['title'] if 'country' in raw.keys() else None,
+            'city': raw['city']['title'] if 'city' in raw.keys() else None,
+            'interests': self.valid('interests', raw),
+            'books': self.valid('books', raw),
+            'games': self.valid('games', raw),
+            'movies': self.valid('movies', raw),
+            'activities': self.valid('activities', raw),
+            'music': self.valid('music', raw),
+            'university': {
+                'name': self.valid('university_name', raw),
+                'faculty': self.valid('faculty_name', raw),
+                'form': self.valid('education_form', raw),
+                'graduation': self.valid('graduation', raw)
+            },
+            'relatives': self.valid('relatives', raw),
+            'friends_count': int(raw['counters']['friends']),
+            'followers_count': int(raw['counters']['followers']),
+            'friends': friends,
+            'subscriptions': {
+                'users': sub_users,
+                'groups': sub_groups
+            },
+            'post_dates': [datetime.fromtimestamp(
+                int(item['date'])
+            ).strftime('%Y-%m-%d %H:%M:%S') for item in posts['items']]
+        }
+
+        return data
