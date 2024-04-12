@@ -2880,3 +2880,11 @@ textarea.w-select {
     align-items: center;
   }
 }
+
+.button-animation {
+  transition: 1s;
+}
+
+.button-animation:hover {
+  transform: scale(0.9);
+}
