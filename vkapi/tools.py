@@ -134,6 +134,24 @@ class Vk:
 
         return data
 
+    def get_info_short(self, link: str) -> dict:
+        """
+        Метод для получения подробных сведений о пользователе
+        VK и возвращения словаря с ними
+
+        :param link: str
+        :return: dict
+        """
+        _id = self.get_id_from_link(link)
+        raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
+        data = {
+            'id': _id,
+            'first_name': self.valid('first_name', raw),
+            'last_name': self.valid('last_name', raw),
+            'icon': self.valid('photo_50', raw)
+        }
+        return data
+
     def get_links_by_ids(self, user_data: dict, count: tuple = (5, 5, 5)) -> dict:
         """
         Метод, принимающий словарь с данными о пользователе и кортеж с количествами
