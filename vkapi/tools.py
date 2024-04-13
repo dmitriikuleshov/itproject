@@ -206,13 +206,6 @@ class Vk:
         return user_info
 
     def get_info_short(self, link: str) -> UserInfo:
-        """
-        Метод для получения подробных сведений о пользователе
-        VK и возвращения словаря с ними
-
-        :param link: str
-        :return: dict
-        """
         _id = self.get_id_from_link(link)
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
         user_info = UserInfo(
@@ -222,6 +215,19 @@ class Vk:
             icon=raw.get("photo_50")
         )
         return user_info
+
+    def get_users_list_info(self, users_ids_list: List[int]) -> List[UserInfo]:
+        raw = self.__vk.users.get(user_ids=users_ids_list, fields='first_name, last_name, photo_50')
+        users_info_list = []
+        for raw_user in raw:
+            user_info = UserInfo(
+                id=int(raw_user["id"]),
+                first_name=raw_user.get("first_name"),
+                last_name=raw_user.get("last_name"),
+                icon=raw_user.get("photo_50")
+            )
+            users_info_list.append(user_info)
+        return users_info_list
 
     def get_links_by_ids(self, user_data: dict, count: tuple = (5, 5, 5)) -> dict:
         """

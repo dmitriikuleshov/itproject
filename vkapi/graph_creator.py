@@ -1,5 +1,6 @@
 from pyvis.network import Network
 from .tools import Vk, UserInfo
+from typing import List
 import os
 
 
@@ -14,11 +15,20 @@ def create_friends_graph(link_to_save_graph: str, user_info: UserInfo) -> None:
     # initializing vk parser
     vk = Vk(token=os.environ['VK_TOKEN'])
 
+    # get list of user's friends
+    if len(user_info["friends"]) > 10:
+        friends_info: List[UserInfo] = vk.get_users_list_info(user_info["friends"][:10])
+    else:
+        friends_info: List[UserInfo] = vk.get_users_list_info(user_info["friends"])
+
     # adding friends
-    for ind, friend in enumerate(user_info["friends"][:10]):
-        friend_info = vk.get_info_short(f"https://vk.com/id{friend}")
-        graph.add_node(n_id=ind, label=f'{friend_info["first_name"]} {friend_info["last_name"]}', shape="circularImage",
-                       image=friend_info["icon"], font={'size': 10}, size=15)
+    for ind, friend in enumerate(friends_info):
+        graph.add_node(n_id=ind,
+                       label=f'{friend.get("first_name")} {friend.get("last_name")}',
+                       shape="circularImage",
+                       image=friend.get("icon"),
+                       font={"size": 10},
+                       size=15)
         graph.add_edge(-1, ind)
 
     # saving graph
