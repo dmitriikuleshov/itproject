@@ -13,7 +13,9 @@ def index_view(request):
     if 'login' in request.COOKIES:
         login = request.COOKIES['login']
 
-    return render(request, 'main/index.html',
+    if not login:
+        return render(request, 'main/index.html')
+    return render(request, 'main/auth-index.html',
                   {'login': login, 'links': VkAccount.objects.filter(creator=login)})
 
 
