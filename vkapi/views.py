@@ -21,7 +21,7 @@ def user_info_view(request):
             if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
                 VkAccount(link=link, creator=request.COOKIES['login']).save()
             return response
-        except (TypeError, IndexError):
+        except (TypeError, IndexError) as e:
             return render(request, 'vkapi/user-info.html', {'error': True})
     else:
         return redirect('/')

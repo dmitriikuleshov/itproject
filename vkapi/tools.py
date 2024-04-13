@@ -6,46 +6,42 @@ from vk_api.exceptions import ApiError
 from datetime import datetime
 from time import time
 
-from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from typing import List, TypedDict, Optional
 
 
-@dataclass
-class University:
-    name: Optional[str] = None
-    faculty: Optional[str] = None
-    form: Optional[str] = None
-    graduation: Optional[int] = None
+class University(TypedDict, total=False):
+    name: Optional[str]
+    faculty: Optional[str]
+    form: Optional[str]
+    graduation: Optional[int]
 
 
-@dataclass
-class Subscriptions:
-    users: List[int] = field(default_factory=list)
-    groups: List[int] = field(default_factory=list)
+class Subscriptions(TypedDict, total=False):
+    users: List[int]
+    groups: List[int]
 
 
-@dataclass
-class UserInfo:
+class UserInfo(TypedDict, total=False):
     id: int
     first_name: str
     last_name: str
-    birthday: Optional[int] = None
-    country: Optional[str] = None
-    city: Optional[str] = None
-    interests: Optional[List[str]] = field(default_factory=list)
-    books: Optional[List[str]] = field(default_factory=list)
-    games: Optional[List[str]] = field(default_factory=list)
-    movies: Optional[List[str]] = field(default_factory=list)
-    activities: Optional[List[str]] = field(default_factory=list)
-    music: Optional[List[str]] = field(default_factory=list)
-    university: Optional[University] = None
-    relatives: Optional[List[str]] = field(default_factory=list)
-    friends_count: Optional[int] = None
-    followers_count: Optional[int] = None
-    friends: Optional[List[int]] = field(default_factory=list)
-    subscriptions: Optional[Subscriptions] = None
-    post_dates: Optional[List[str]] = field(default_factory=list)
-    icon: Optional[str] = None
+    birthday: Optional[int]
+    country: Optional[str]
+    city: Optional[str]
+    interests: List[str]
+    books: List[str]
+    games: List[str]
+    movies: List[str]
+    activities: List[str]
+    music: List[str]
+    university: Optional[University]
+    relatives: List[str]
+    friends_count: Optional[int]
+    followers_count: Optional[int]
+    friends: List[int]
+    subscriptions: Optional[Subscriptions]
+    post_dates: List[str]
+    icon: Optional[str]
 
 
 class Vk:
@@ -209,7 +205,7 @@ class Vk:
         # }'
         return user_info
 
-    def get_info_short(self, link: str) -> dict:
+    def get_info_short(self, link: str) -> UserInfo:
         """
         Метод для получения подробных сведений о пользователе
         VK и возвращения словаря с ними
@@ -219,13 +215,13 @@ class Vk:
         """
         _id = self.get_id_from_link(link)
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
-        data = {
-            'id': _id,
-            'first_name': self.valid('first_name', raw),
-            'last_name': self.valid('last_name', raw),
-            'icon': self.valid('photo_50', raw)
-        }
-        return data
+        user_info = UserInfo(
+            id=int(_id),
+            first_name=raw.get("first_name"),
+            last_name=raw.get("last_name"),
+            icon=raw.get("photo_50")
+        )
+        return user_info
 
     def get_links_by_ids(self, user_data: dict, count: tuple = (5, 5, 5)) -> dict:
         """

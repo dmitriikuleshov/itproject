@@ -1,9 +1,9 @@
 from pyvis.network import Network
-from .tools import Vk
+from .tools import Vk, UserInfo
 import os
 
 
-def create_friends_graph(link_to_save_graph: str, user_info: dict) -> None:
+def create_friends_graph(link_to_save_graph: str, user_info: UserInfo) -> None:
     # create graph object
     graph = Network(height='750px', width='700px', bgcolor='#222222', font_color='white')
 
