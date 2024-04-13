@@ -6,6 +6,47 @@ from vk_api.exceptions import ApiError
 from datetime import datetime
 from time import time
 
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict, Any
+
+
+@dataclass
+class University:
+    name: Optional[str] = None
+    faculty: Optional[str] = None
+    form: Optional[str] = None
+    graduation: Optional[int] = None
+
+
+@dataclass
+class Subscriptions:
+    users: List[int] = field(default_factory=list)
+    groups: List[int] = field(default_factory=list)
+
+
+@dataclass
+class UserInfo:
+    id: int
+    first_name: str
+    last_name: str
+    birthday: Optional[int] = None
+    country: Optional[str] = None
+    city: Optional[str] = None
+    interests: Optional[List[str]] = field(default_factory=list)
+    books: Optional[List[str]] = field(default_factory=list)
+    games: Optional[List[str]] = field(default_factory=list)
+    movies: Optional[List[str]] = field(default_factory=list)
+    activities: Optional[List[str]] = field(default_factory=list)
+    music: Optional[List[str]] = field(default_factory=list)
+    university: Optional[University] = None
+    relatives: Optional[List[str]] = field(default_factory=list)
+    friends_count: Optional[int] = None
+    followers_count: Optional[int] = None
+    friends: Optional[List[int]] = field(default_factory=list)
+    subscriptions: Optional[Subscriptions] = None
+    post_dates: Optional[List[str]] = field(default_factory=list)
+    icon: Optional[str] = None
+
 
 class Vk:
     """Класс, отвечающий за подключение VK API."""
@@ -78,7 +119,7 @@ class Vk:
             ).strftime('%Y-%m-%d %H:%M:%S') for item in times
         ]
 
-    def get_info(self, link: str) -> dict:
+    def get_info(self, link: str) -> UserInfo:
         """
         Метод для получения подробных сведений о пользователе
         VK и возвращения словаря с ними
@@ -87,11 +128,11 @@ class Vk:
         :return: dict
         """
         _id = self.get_id_from_link(link)
-        raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
-                                                      'country, city, activities, '
-                                                      'books, education, games, '
-                                                      'interests, movies, music, personal, '
-                                                      'relatives, counters, photo_50')[0]
+        raw: dict = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
+                                                            'country, city, activities, '
+                                                            'books, education, games, '
+                                                            'interests, movies, music, personal, '
+                                                            'relatives, counters, photo_50')[0]
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
             subs = self.__vk.users.getSubscriptions(user_id=_id)
@@ -101,38 +142,72 @@ class Vk:
         except ApiError:
             friends = sub_users = sub_groups = posts = None
 
-        data = {
-            'id': _id,
-            'first_name': self.valid('first_name', raw),
-            'last_name': self.valid('last_name', raw),
-            'birthday': self.valid('bdate', raw),
-            'country': raw['country']['title'] if 'country' in raw.keys() else None,
-            'city': raw['city']['title'] if 'city' in raw.keys() else None,
-            'interests': self.valid('interests', raw),
-            'books': self.valid('books', raw),
-            'games': self.valid('games', raw),
-            'movies': self.valid('movies', raw),
-            'activities': self.valid('activities', raw),
-            'music': self.valid('music', raw),
-            'university': {
-                'name': self.valid('university_name', raw),
-                'faculty': self.valid('faculty_name', raw),
-                'form': self.valid('education_form', raw),
-                'graduation': self.valid('graduation', raw)
-            },
-            'relatives': self.valid('relatives', raw),
-            'friends_count': self.valid('friends', raw['counters']),
-            'followers_count': self.valid('followers', raw['counters']),
-            'friends': friends,
-            'subscriptions': {
-                'users': sub_users,
-                'groups': sub_groups
-            },
-            'post_dates': posts['items'],
-            'icon': self.valid('photo_50', raw)
-        }
+        user_university = University(
+            name=raw.get("university_name"),
+            faculty=raw.get("faculty_name"),
+            form=raw.get("education_form"),
+            graduation=raw.get("graduation")
+        )
 
-        return data
+        user_subscriptions = Subscriptions(
+            users=sub_users,
+            groups=sub_groups
+        )
+
+        user_info = UserInfo(
+            id=int(_id),
+            first_name=raw.get("first_name"),
+            last_name=raw.get("last_name"),
+            birthday=raw.get("bdate"),
+            country=raw['country']['title'] if 'country' in raw.keys() else None,
+            city=raw['city']['title'] if 'city' in raw.keys() else None,
+            interests=raw.get("interests"),
+            books=raw.get("books"),
+            games=raw.get("games"),
+            movies=raw.get("movies"),
+            activities=raw.get("activities"),
+            music=raw.get("music"),
+            university=user_university,
+            relatives=raw.get("relatives"),
+            friends_count=raw["counters"].get("friends"),
+            followers_count=raw["counters"].get("followers"),
+            friends=friends,
+            subscriptions=user_subscriptions,
+            post_dates=posts['items'],
+            icon=raw.get("photo_50")
+        )
+
+        # data = {
+        #     'id': _id,
+        #     'first_name': self.valid('first_name', raw),
+        #     'last_name': self.valid('last_name', raw),
+        #     'birthday': self.valid('bdate', raw),
+        #     'country': raw['country']['title'] if 'country' in raw.keys() else None,
+        #     'city': raw['city']['title'] if 'city' in raw.keys() else None,
+        #     'interests': self.valid('interests', raw),
+        #     'books': self.valid('books', raw),
+        #     'games': self.valid('games', raw),
+        #     'movies': self.valid('movies', raw),
+        #     'activities': self.valid('activities', raw),
+        #     'music': self.valid('music', raw),
+        #     'university': {
+        #         'name': self.valid('university_name', raw),
+        #         'faculty': self.valid('faculty_name', raw),
+        #         'form': self.valid('education_form', raw),
+        #         'graduation': self.valid('graduation', raw)
+        #     },
+        #     'relatives': self.valid('relatives', raw),
+        #     'friends_count': self.valid('friends', raw['counters']),
+        #     'followers_count': self.valid('followers', raw['counters']),
+        #     'friends': friends,
+        #     'subscriptions': {
+        #         'users': sub_users,
+        #         'groups': sub_groups
+        #     },
+        #     'post_dates': posts['items'],
+        #     'icon': self.valid('photo_50', raw)
+        # }'
+        return user_info
 
     def get_info_short(self, link: str) -> dict:
         """
