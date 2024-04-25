@@ -2,6 +2,7 @@ import re
 import vk_api
 
 from vk_api.exceptions import ApiError
+from .toxicity_check import check_obscene_vocabulary
 
 from datetime import datetime
 from time import time
@@ -76,38 +77,22 @@ class Vk:
                 try:
                     resolved_name = self.__vk.utils.resolveScreenName(
                         screen_name=id_or_name[0])
-                    print(resolved_name)
                     user_id = resolved_name['object_id'] if resolved_name['type'] == 'user' else None
                     if user_id is None:
                         raise TypeError
                 except KeyError:
                     raise TypeError
-            print(type(user_id))
             return user_id
         else:
             raise TypeError
-
-    @staticmethod
-    def valid(key: str, obj: dict):
-        """
-        Метод, возвращающий значение по ключу словаря
-        или None в случае отсутствия введённого ключа в словаре
-
-        :param key: str
-        :param obj: dict
-        :return: Any
-        """
-        if key in obj.keys():
-            return obj[key]
-        return None
 
     @staticmethod
     def convert_time(times: list) -> list:
         """
         Метод, принимающий список моментов времени в формате Unix
         и возвращающий список этих же моментов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС
-        :param times: list
-        :return: list
+        :param times: List[str]
+        :return: List[str]
         """
         return [
             datetime.fromtimestamp(
@@ -172,37 +157,6 @@ class Vk:
             post_dates=posts['items'],
             icon=raw.get("photo_50")
         )
-
-        # data = {
-        #     'id': _id,
-        #     'first_name': self.valid('first_name', raw),
-        #     'last_name': self.valid('last_name', raw),
-        #     'birthday': self.valid('bdate', raw),
-        #     'country': raw['country']['title'] if 'country' in raw.keys() else None,
-        #     'city': raw['city']['title'] if 'city' in raw.keys() else None,
-        #     'interests': self.valid('interests', raw),
-        #     'books': self.valid('books', raw),
-        #     'games': self.valid('games', raw),
-        #     'movies': self.valid('movies', raw),
-        #     'activities': self.valid('activities', raw),
-        #     'music': self.valid('music', raw),
-        #     'university': {
-        #         'name': self.valid('university_name', raw),
-        #         'faculty': self.valid('faculty_name', raw),
-        #         'form': self.valid('education_form', raw),
-        #         'graduation': self.valid('graduation', raw)
-        #     },
-        #     'relatives': self.valid('relatives', raw),
-        #     'friends_count': self.valid('friends', raw['counters']),
-        #     'followers_count': self.valid('followers', raw['counters']),
-        #     'friends': friends,
-        #     'subscriptions': {
-        #         'users': sub_users,
-        #         'groups': sub_groups
-        #     },
-        #     'post_dates': posts['items'],
-        #     'icon': self.valid('photo_50', raw)
-        # }'
         return user_info
 
     def get_info_short(self, link: str) -> UserInfo:
@@ -229,14 +183,14 @@ class Vk:
             users_info_list.append(user_info)
         return users_info_list
 
-    def get_links_by_ids(self, user_data: dict, count: tuple = (5, 5, 5)) -> dict:
+    def get_links_by_ids(self, user_data: UserInfo, count: tuple = (5, 5, 5)) -> dict:
         """
         Метод, принимающий словарь с данными о пользователе и кортеж с количествами
         ссылок, которые необходимо получить для каждой категории,
         и возвращающий словарь с именами и ссылками на друзей, аккаунты и группы,
         на которые подписан пользователь('friends', 'users', 'groups' соответственно)
 
-        :param user_data: dict
+        :param user_data: UserInfo
         :param count: tuple
         :return: dict
         """
@@ -263,21 +217,24 @@ class Vk:
             'groups': groups
         }
 
-    def get_activity(self, user_data: dict, count: tuple = (40, 40, 40), time_limit: int = 2629743) -> list:
+    def get_activity(self, user_data: UserInfo, count: tuple = (5, 5, 5), time_limit: int = 2629743,
+                     times: bool = True) -> List[str]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
         пользователем и оставлений им комментариев под постами
-        друзей, пользователей или групп, на которые он подписан.
+        друзей, пользователей или групп, на которые он подписан,
+        если times = True, и список текстов этих постов в противном случае.
         Рассматриваются посты, выложенные не ранее, чем за
         time_limit секунд дл текущего момента
 
-        :param user_data: dict
+        :param user_data: UserInfo
         :param count: tuple
         :param time_limit: int
-        :return: list
+        :param times: bool
+        :return: List[str]
         """
-        times = set()
+        result = set()
 
         if user_data['friends'] is not None:
             for friend in user_data['friends'][:count[0]]:
@@ -290,7 +247,10 @@ class Vk:
                             comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
                             for comment in comments['items']:
                                 if comment['from_id'] == user_data['id']:
-                                    times.add(comment['date'])
+                                    if times:
+                                        result.add(comment['date'])
+                                    else:
+                                        result.add(comment['text'])
                 except ApiError:
                     pass
 
@@ -305,7 +265,10 @@ class Vk:
                             comments = self.__vk.wall.getComments(owner_id=user, post_id=post['id'], count=100)
                             for comment in comments['items']:
                                 if comment['from_id'] == user_data['id']:
-                                    times.add(comment['date'])
+                                    if times:
+                                        result.add(comment['date'])
+                                    else:
+                                        result.add(comment['text'])
                 except ApiError:
                     pass
 
@@ -320,8 +283,26 @@ class Vk:
                             comments = self.__vk.wall.getComments(owner_id=-group, post_id=post['id'], count=100)
                             for comment in comments['items']:
                                 if comment['from_id'] == user_data['id']:
-                                    times.add(comment['date'])
+                                    if times:
+                                        result.add(comment['date'])
+                                    else:
+                                        result.add(comment['text'])
                 except ApiError:
                     pass
 
-        return sorted(list(times) + user_data['post_dates'])
+        if times:
+            return sorted(list(result) + user_data['post_dates'])
+
+        posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
+        return list(result) + [post['text'] for post in posts['items']]
+
+    def check_toxicity(self, user_data: UserInfo) -> List[str]:
+        """
+        Метод, проверяющий массив постов и комментариев пользователя
+        на предмет наличия нецензурной и оскорбительной лексики
+        и возвращающий список сообщений, в которых такая лексика была найдена
+
+        :param user_data: UserInfo
+        :return: List[str]
+        """
+        return check_obscene_vocabulary(self.get_activity(user_data, times=False))

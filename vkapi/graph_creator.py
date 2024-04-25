@@ -1,5 +1,5 @@
 from pyvis.network import Network
-from .tools import Vk, UserInfo
+from .vk_tools import Vk, UserInfo
 from typing import List
 import os
 
