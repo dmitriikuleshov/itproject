@@ -3,7 +3,7 @@ import os
 
 from .vk_tools import Vk
 from main.models import VkAccount
-from .graph_creator import create_friends_graph
+from .graph_creator import create_friends_graph, create_mutual_friends_graph
 
 
 def user_info_view(request):
@@ -17,7 +17,11 @@ def user_info_view(request):
 
         try:
             vk_info = vk.get_info(link)
-            create_friends_graph('vkapi/templates/vkapi/friends-graph.html', vk_info)
+            vk_friends_info = vk.get_common_connections(link)
+
+            # create_friends_graph('vkapi/templates/vkapi/friends-graph.html', vk_info)
+            create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
+                                        vk_info, vk_friends_info)
             response = render(request, 'vkapi/user-info.html', vk_info)
 
             if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
