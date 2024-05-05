@@ -340,7 +340,7 @@ class Vk:
         _friends_sets = []
         for _id in _ids:
             try:
-                friends = set(self.__vk.friends.get(user_id=_id, count=10)["items"])
+                friends = set(self.__vk.friends.get(user_id=_id, count=20)["items"])
                 _friends_sets.append(friends)
             except Exception as e:
                 # print(f"Ошибка при получении списка друзей для пользователя с ID {_id}: {e}")
@@ -361,7 +361,7 @@ class Vk:
         return: List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None
         """
         _id = self.get_id_from_link(link)
-        _friends = self.__vk.friends.get(user_id=_id, count=10)["items"]
+        _friends = self.__vk.friends.get(user_id=_id, count=20)["items"]
         connections = []
         for friend in self.get_users_list_info(_friends):
             connections.append(
