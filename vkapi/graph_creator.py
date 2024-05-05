@@ -1,7 +1,6 @@
 from pyvis.network import Network
-from .tools import Vk, UserInfo
-from typing import List, Tuple, Optional
-from copy import deepcopy
+from .vk_tools import Vk, UserInfo
+from typing import List
 import os
 
 
@@ -31,40 +30,6 @@ def create_friends_graph(link_to_save_graph: str, user_info: UserInfo) -> None:
                        font={"size": 10},
                        size=15)
         graph.add_edge(-1, ind)
-
-    # saving graph
-    graph.save_graph(link_to_save_graph)
-
-
-def create_mutual_friends_graph(link_to_save_graph: str,
-                                user_info: UserInfo,
-                                vk_mutual_friends_info: List[Tuple[UserInfo, Optional[List[UserInfo]]]]) -> None:
-    # create graph object
-    graph = Network(height='750px', width='700px', bgcolor='#222222', font_color='white')
-
-    graph.add_node(n_id=-1, label=f'{user_info["first_name"]} {user_info["last_name"]}', shape="circularImage",
-                   image=user_info["icon"], font={'size': 10}, size=25)
-
-    cur_id = 0
-    # key=vk-id vale = graph-id
-    id_dict: dict = dict()
-    for friend_info in vk_mutual_friends_info:
-        graph.add_node(n_id=cur_id,
-                       label=f'{friend_info[0].get("first_name")} {friend_info[0].get("last_name")}',
-                       shape="circularImage",
-                       image=friend_info[0].get("icon"),
-                       font={"size": 10},
-                       size=15)
-        friend_id = deepcopy(cur_id)
-        id_dict[friend_info[0].get("id")] = friend_id
-        graph.add_edge(-1, cur_id)
-        cur_id += 1
-
-    for friend_info in vk_mutual_friends_info:
-        if friend_info[1] is not None:
-            for friend_friend_info in friend_info[1]:
-                friend_friend_id = friend_friend_info.get("id")
-                graph.add_edge(id_dict[friend_info[0].get("id")], id_dict[friend_friend_id])
 
     # saving graph
     graph.save_graph(link_to_save_graph)
