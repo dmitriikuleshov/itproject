@@ -7,7 +7,7 @@ from .toxicity_check import check_obscene_vocabulary
 from datetime import datetime
 from time import time
 
-from typing import List, TypedDict, Optional
+from typing import List, TypedDict, Optional, Tuple, Dict
 
 
 class University(TypedDict, total=False):
@@ -46,22 +46,47 @@ class UserInfo(TypedDict, total=False):
 
 
 class Vk:
-    """Класс, отвечающий за подключение VK API."""
+    """
+    Класс, отвечающий за подключение к VK API
+
+    Attributes
+    ----------
+    __vk: VkApiMethod
+        Объект для доступа к методам VkAPI
+
+    """
 
     def __init__(self, token: str) -> None:
         """
-        Инициализация токена VK.
+        Инициализация токена VK
 
-        :param token: str
+        Parameters
+        ----------
+        token: str
+            API-ключ VK
+
         """
         self.__vk = vk_api.VkApi(token=token).get_api()
 
     def get_id_from_link(self, link: str) -> str:
         """
-        Метод, возвращающий ID пользователя по ссылке на его профиль.
+        Метод, возвращающий ID пользователя по ссылке на его профиль
 
-        :param link: str
-        :return: str
+        Parameters
+        ----------
+        link: str
+            Ссылка на анализируемый аккаунт VK
+
+        Returns
+        -------
+        str
+            ID пользователя
+
+        Raises
+        ------
+        TypeError
+            В случае некорректности ссылки на аккаунт
+
         """
         id_reg_expression = (r"(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel="
                              r"|id=*|photo|videos|albums|audios|topic)(-?"
@@ -87,16 +112,25 @@ class Vk:
             raise TypeError
 
     @staticmethod
-    def convert_time(times: list) -> list:
+    def convert_time(times: List[str]) -> List[str]:
         """
         Метод, принимающий список моментов времени в формате Unix
         и возвращающий список этих же моментов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС
-        :param times: List[str]
-        :return: List[str]
+
+        Parameters
+        ----------
+        times: List[str]
+            Список моментов времени
+
+        Returns
+        -------
+        List[str]
+            Список преобразованных дат
+
         """
         return [
             datetime.fromtimestamp(
-                int(item['date'])
+                int(item)
             ).strftime('%Y-%m-%d %H:%M:%S') for item in times
         ]
 
@@ -105,8 +139,16 @@ class Vk:
         Метод для получения подробных сведений о пользователе
         VK и возвращения словаря с ними
 
-        :param link: str
-        :return: dict
+        Parameters
+        ----------
+        link: str
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        UserInfo
+            Словарь с данными об аккаунте VK
+
         """
         _id = self.get_id_from_link(link)
         raw: dict = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
@@ -160,6 +202,20 @@ class Vk:
         return user_info
 
     def get_info_short(self, link: str) -> UserInfo:
+        """
+        Метод, возвращающий краткую информацию об аккаунте VK.
+
+        Parameters
+        ----------
+        link: str
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        UserInfo
+            Словарь с данными об аккаунте VK
+
+        """
         _id = self.get_id_from_link(link)
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
         user_info = UserInfo(
@@ -171,6 +227,20 @@ class Vk:
         return user_info
 
     def get_users_list_info(self, users_ids_list: List[int]) -> List[UserInfo]:
+        """
+        Метод, возвращающий список данных о нескольких аккаунтах VK
+
+        Parameters
+        ----------
+        users_ids_list: List[int]
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        List[UserInfo]
+            Список с объектами данных о пользователях
+
+        """
         raw = self.__vk.users.get(user_ids=users_ids_list, fields='first_name, last_name, photo_50')
         users_info_list = []
         for raw_user in raw:
@@ -183,16 +253,25 @@ class Vk:
             users_info_list.append(user_info)
         return users_info_list
 
-    def get_links_by_ids(self, user_data: UserInfo, count: tuple = (5, 5, 5)) -> dict:
+    def get_links_by_ids(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5)) -> Dict[str, List[List[str]]]:
         """
         Метод, принимающий словарь с данными о пользователе и кортеж с количествами
         ссылок, которые необходимо получить для каждой категории,
         и возвращающий словарь с именами и ссылками на друзей, аккаунты и группы,
         на которые подписан пользователь('friends', 'users', 'groups' соответственно)
 
-        :param user_data: UserInfo
-        :param count: tuple
-        :return: dict
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+        count: Tuple[int]
+            Ограничители количества ссылок
+
+        Returns
+        -------
+        Dict[str, List[List[str]]]
+            Словарь со списками ссылок на друзей и подписки
+
         """
         friends, users, groups = [], [], []
 
@@ -218,7 +297,7 @@ class Vk:
         }
 
     def get_activity(self, user_data: UserInfo, count: tuple = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str]:
+                     times: bool = True) -> List[str] | List[Tuple[str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -228,31 +307,42 @@ class Vk:
         Рассматриваются посты, выложенные не ранее, чем за
         time_limit секунд дл текущего момента
 
-        :param user_data: UserInfo
-        :param count: tuple
-        :param time_limit: int
-        :param times: bool
-        :return: List[str]
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+        count: Tuple[int]
+            Ограничители количества ссылок
+        time_limit: int
+            Ограничитель возраста рассматриваемых постов
+        times: bool
+            Режим работы (моменты времени или тексты для анализа токсичности)
+
+        Returns
+        -------
+        List[str] | List[Tuple[str]]
+            Список с моментами времени или с кортежами текстов и ссылок на посты
+
         """
         result = set()
 
-        if user_data['friends'] is not None:
-            for friend in user_data['friends'][:count[0]]:
-                try:
-                    posts = self.__vk.wall.get(owner_id=friend, count=100)
-                    for post in posts['items']:
-                        if post['date'] < time() - time_limit:
-                            break
-                        if post['comments']['count']:
-                            comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
-                            for comment in comments['items']:
-                                if comment['from_id'] == user_data['id']:
-                                    if times:
-                                        result.add(comment['date'])
-                                    else:
-                                        result.add(comment['text'])
-                except ApiError:
-                    pass
+        for friend in user_data['friends'][:count[0]] + [user_data['id']]:
+            try:
+                posts = self.__vk.wall.get(owner_id=friend, count=100)
+                for post in posts['items']:
+                    if post['date'] < time() - time_limit:
+                        break
+                    if post['comments']['count']:
+                        comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
+                        for comment in comments['items']:
+                            if comment['from_id'] == user_data['id']:
+                                if times:
+                                    result.add(comment['date'])
+                                else:
+                                    result.add((comment['text'],
+                                                f'https://vk.com/wall{user_data['id']}_{post['id']}'))
+            except ApiError:
+                pass
 
         if user_data['subscriptions']['users'] is not None:
             for user in user_data['friends'][:count[1]]:
@@ -268,7 +358,8 @@ class Vk:
                                     if times:
                                         result.add(comment['date'])
                                     else:
-                                        result.add(comment['text'])
+                                        result.add((comment['text'],
+                                                    f'https://vk.com/wall{user_data['id']}_{post['id']}'))
                 except ApiError:
                     pass
 
@@ -286,7 +377,8 @@ class Vk:
                                     if times:
                                         result.add(comment['date'])
                                     else:
-                                        result.add(comment['text'])
+                                        result.add((comment['text'],
+                                                    f'https://vk.com/wall{user_data['id']}_{post['id']}'))
                 except ApiError:
                     pass
 
@@ -294,15 +386,24 @@ class Vk:
             return sorted(list(result) + user_data['post_dates'])
 
         posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
-        return list(result) + [post['text'] for post in posts['items']]
+        return list(result) + [(post['text'],
+                                f'https://vk.com/wall{user_data['id']}_{post['id']}') for post in posts['items']]
 
-    def check_toxicity(self, user_data: UserInfo) -> List[str]:
+    def check_toxicity(self, user_data: UserInfo) -> List[Optional[str]]:
         """
         Метод, проверяющий массив постов и комментариев пользователя
         на предмет наличия нецензурной и оскорбительной лексики
         и возвращающий список сообщений, в которых такая лексика была найдена
 
-        :param user_data: UserInfo
-        :return: List[str]
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+
+        Returns
+        -------
+        List[Optional[str]]
+            Список со ссылками на тексты с нецензурной лексикой
+
         """
         return check_obscene_vocabulary(self.get_activity(user_data, times=False))
