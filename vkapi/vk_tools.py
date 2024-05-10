@@ -297,7 +297,7 @@ class Vk:
         }
 
     def get_activity(self, user_data: UserInfo, count: tuple = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str] | List[Tuple[str]]:
+                     times: bool = True) -> List[int] | List[Tuple[str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -340,7 +340,7 @@ class Vk:
                                     result.add(comment['date'])
                                 else:
                                     result.add((comment['text'],
-                                                f'https://vk.com/wall{user_data['id']}_{post['id']}'))
+                                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
             except ApiError:
                 pass
 
@@ -359,7 +359,7 @@ class Vk:
                                         result.add(comment['date'])
                                     else:
                                         result.add((comment['text'],
-                                                    f'https://vk.com/wall{user_data['id']}_{post['id']}'))
+                                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
                 except ApiError:
                     pass
 
@@ -378,7 +378,7 @@ class Vk:
                                         result.add(comment['date'])
                                     else:
                                         result.add((comment['text'],
-                                                    f'https://vk.com/wall{user_data['id']}_{post['id']}'))
+                                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
                 except ApiError:
                     pass
 
@@ -387,7 +387,7 @@ class Vk:
 
         posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
         return list(result) + [(post['text'],
-                                f'https://vk.com/wall{user_data['id']}_{post['id']}') for post in posts['items']]
+                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
 
     def check_toxicity(self, user_data: UserInfo) -> List[Optional[str]]:
         """
