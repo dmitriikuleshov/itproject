@@ -112,7 +112,7 @@ class Vk:
             raise TypeError
 
     @staticmethod
-    def convert_time(times: List[str]) -> List[str]:
+    def convert_time(times: List[int]) -> List[str]:
         """
         Метод, принимающий список моментов времени в формате Unix
         и возвращающий список этих же моментов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС
@@ -296,8 +296,8 @@ class Vk:
             'groups': groups
         }
 
-    def get_activity(self, user_data: UserInfo, count: tuple = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[int] | List[Tuple[str]]:
+    def get_activity(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5), time_limit: int = 2629743,
+                     times: bool = True) -> List[str] | List[Tuple[str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -383,7 +383,7 @@ class Vk:
                     pass
 
         if times:
-            return sorted(list(result) + user_data['post_dates'])
+            return self.convert_time(sorted(list(result) + user_data['post_dates']))
 
         posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
         return list(result) + [(post['text'],
