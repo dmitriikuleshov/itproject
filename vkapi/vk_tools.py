@@ -6,8 +6,9 @@ from vk_api.exceptions import ApiError
 from datetime import datetime
 from time import time
 
-from typing import List, TypedDict, Optional, Tuple
+
 from .toxicity_check import check_obscene_vocabulary
+from typing import List, TypedDict, Optional, Tuple, Dict
 
 
 class University(TypedDict, total=False):
@@ -41,27 +42,52 @@ class UserInfo(TypedDict, total=False):
     followers_count: Optional[int]
     friends: List[int]
     subscriptions: Optional[Subscriptions]
-    post_dates: List[str]
+    post_dates: List[int]
     icon: Optional[str]
 
 
 class Vk:
-    """Класс, отвечающий за подключение VK API."""
+    """
+    Класс, отвечающий за подключение к VK API
+
+    Attributes
+    ----------
+    __vk: VkApiMethod
+        Объект для доступа к методам VkAPI
+
+    """
 
     def __init__(self, token: str) -> None:
         """
-        Инициализация токена VK.
+        Инициализация токена VK
 
-        :param token: str
+        Parameters
+        ----------
+        token: str
+            API-ключ VK
+
         """
         self.__vk = vk_api.VkApi(token=token).get_api()
 
     def get_id_from_link(self, link: str) -> str:
         """
-        Метод, возвращающий ID пользователя по ссылке на его профиль.
+        Метод, возвращающий ID пользователя по ссылке на его профиль
 
-        :param link: str
-        :return: str
+        Parameters
+        ----------
+        link: str
+            Ссылка на анализируемый аккаунт VK
+
+        Returns
+        -------
+        str
+            ID пользователя
+
+        Raises
+        ------
+        TypeError
+            В случае некорректности ссылки на аккаунт
+
         """
         id_reg_expression = (r"(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel="
                              r"|id=*|photo|videos|albums|audios|topic)(-?"
@@ -77,30 +103,14 @@ class Vk:
                 try:
                     resolved_name = self.__vk.utils.resolveScreenName(
                         screen_name=id_or_name[0])
-                    # print(resolved_name)
                     user_id = resolved_name['object_id'] if resolved_name['type'] == 'user' else None
                     if user_id is None:
                         raise TypeError
                 except KeyError:
                     raise TypeError
-            # print(type(user_id))
             return user_id
         else:
             raise TypeError
-
-    @staticmethod
-    def valid(key: str, obj: dict):
-        """
-        Метод, возвращающий значение по ключу словаря
-        или None в случае отсутствия введённого ключа в словаре
-
-        :param key: str
-        :param obj: dict
-        :return: Any
-        """
-        if key in obj.keys():
-            return obj[key]
-        return None
 
     @staticmethod
     def convert_time(times: List[str]) -> List[str]:
@@ -130,8 +140,16 @@ class Vk:
         Метод для получения подробных сведений о пользователе
         VK и возвращения словаря с ними
 
-        :param link: str
-        :return: dict
+        Parameters
+        ----------
+        link: str
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        UserInfo
+            Словарь с данными об аккаунте VK
+
         """
         _id = self.get_id_from_link(link)
         raw: dict = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
@@ -144,7 +162,7 @@ class Vk:
             subs = self.__vk.users.getSubscriptions(user_id=_id)
             sub_users = subs['users']['items']
             sub_groups = subs['groups']['items']
-            posts = self.__vk.wall.get(owner_id=_id, count=100)
+            posts = [post['date'] for post in self.__vk.wall.get(owner_id=_id, count=100)['items']]
         except ApiError:
             friends = sub_users = sub_groups = posts = None
 
@@ -179,43 +197,26 @@ class Vk:
             followers_count=raw["counters"].get("followers"),
             friends=friends,
             subscriptions=user_subscriptions,
-            post_dates=posts['items'],
+            post_dates=posts,
             icon=raw.get("photo_50")
         )
-
-        # data = {
-        #     'id': _id,
-        #     'first_name': self.valid('first_name', raw),
-        #     'last_name': self.valid('last_name', raw),
-        #     'birthday': self.valid('bdate', raw),
-        #     'country': raw['country']['title'] if 'country' in raw.keys() else None,
-        #     'city': raw['city']['title'] if 'city' in raw.keys() else None,
-        #     'interests': self.valid('interests', raw),
-        #     'books': self.valid('books', raw),
-        #     'games': self.valid('games', raw),
-        #     'movies': self.valid('movies', raw),
-        #     'activities': self.valid('activities', raw),
-        #     'music': self.valid('music', raw),
-        #     'university': {
-        #         'name': self.valid('university_name', raw),
-        #         'faculty': self.valid('faculty_name', raw),
-        #         'form': self.valid('education_form', raw),
-        #         'graduation': self.valid('graduation', raw)
-        #     },
-        #     'relatives': self.valid('relatives', raw),
-        #     'friends_count': self.valid('friends', raw['counters']),
-        #     'followers_count': self.valid('followers', raw['counters']),
-        #     'friends': friends,
-        #     'subscriptions': {
-        #         'users': sub_users,
-        #         'groups': sub_groups
-        #     },
-        #     'post_dates': posts['items'],
-        #     'icon': self.valid('photo_50', raw)
-        # }'
         return user_info
 
     def get_info_short(self, link: str) -> UserInfo:
+        """
+        Метод, возвращающий краткую информацию об аккаунте VK.
+
+        Parameters
+        ----------
+        link: str
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        UserInfo
+            Словарь с данными об аккаунте VK
+
+        """
         _id = self.get_id_from_link(link)
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
         user_info = UserInfo(
@@ -227,6 +228,20 @@ class Vk:
         return user_info
 
     def get_users_list_info(self, users_ids_list: List[int]) -> List[UserInfo]:
+        """
+        Метод, возвращающий список данных о нескольких аккаунтах VK
+
+        Parameters
+        ----------
+        users_ids_list: List[int]
+            Ссылка на аккаунт VK
+
+        Returns
+        -------
+        List[UserInfo]
+            Список с объектами данных о пользователях
+
+        """
         raw = self.__vk.users.get(user_ids=users_ids_list, fields='first_name, last_name, photo_50')
         users_info_list = []
         for raw_user in raw:
@@ -239,16 +254,25 @@ class Vk:
             users_info_list.append(user_info)
         return users_info_list
 
-    def get_links_by_ids(self, user_data: dict, count: tuple = (5, 5, 5)) -> dict:
+    def get_links_by_ids(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5)) -> Dict[str, List[List[str]]]:
         """
         Метод, принимающий словарь с данными о пользователе и кортеж с количествами
         ссылок, которые необходимо получить для каждой категории,
         и возвращающий словарь с именами и ссылками на друзей, аккаунты и группы,
         на которые подписан пользователь('friends', 'users', 'groups' соответственно)
 
-        :param user_data: dict
-        :param count: tuple
-        :return: dict
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+        count: Tuple[int]
+            Ограничители количества ссылок
+
+        Returns
+        -------
+        Dict[str, List[List[str]]]
+            Словарь со списками ссылок на друзей и подписки
+
         """
         friends, users, groups = [], [], []
 
@@ -366,14 +390,22 @@ class Vk:
         return list(result) + [(post['text'],
                                 f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
 
-    def check_toxicity(self, user_data: UserInfo) -> List[str]:
+    def check_toxicity(self, user_data: UserInfo) -> List[Optional[str]]:
         """
         Метод, проверяющий массив постов и комментариев пользователя
         на предмет наличия нецензурной и оскорбительной лексики
         и возвращающий список сообщений, в которых такая лексика была найдена
 
-        :param user_data: UserInfo
-        :return: List[str]
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+
+        Returns
+        -------
+        List[Optional[str]]
+            Список со ссылками на тексты с нецензурной лексикой
+
         """
         return check_obscene_vocabulary(self.get_activity(user_data, times=False))
 
