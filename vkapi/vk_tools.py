@@ -41,7 +41,7 @@ class UserInfo(TypedDict, total=False):
     followers_count: Optional[int]
     friends: List[int]
     subscriptions: Optional[Subscriptions]
-    post_dates: List[str]
+    post_dates: List[int]
     icon: Optional[str]
 
 
@@ -161,7 +161,7 @@ class Vk:
             subs = self.__vk.users.getSubscriptions(user_id=_id)
             sub_users = subs['users']['items']
             sub_groups = subs['groups']['items']
-            posts = self.__vk.wall.get(owner_id=_id, count=100)
+            posts = [post['date'] for post in self.__vk.wall.get(owner_id=_id, count=100)['items']]
         except ApiError:
             friends = sub_users = sub_groups = posts = None
 
@@ -196,7 +196,7 @@ class Vk:
             followers_count=raw["counters"].get("followers"),
             friends=friends,
             subscriptions=user_subscriptions,
-            post_dates=posts['items'],
+            post_dates=posts,
             icon=raw.get("photo_50")
         )
         return user_info
