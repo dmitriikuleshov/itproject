@@ -103,16 +103,25 @@ class Vk:
         return None
 
     @staticmethod
-    def convert_time(times: list) -> list:
+    def convert_time(times: List[str]) -> List[str]:
         """
         Метод, принимающий список моментов времени в формате Unix
         и возвращающий список этих же моментов в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС
-        :param times: list
-        :return: list
+
+        Parameters
+        ----------
+        times: List[str]
+            Список моментов времени
+
+        Returns
+        -------
+        List[str]
+            Список преобразованных дат
+
         """
         return [
             datetime.fromtimestamp(
-                int(item['date'])
+                int(item)
             ).strftime('%Y-%m-%d %H:%M:%S') for item in times
         ]
 
@@ -265,7 +274,7 @@ class Vk:
         }
 
     def get_activity(self, user_data: UserInfo, count: tuple = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str]:
+                     times: bool = True) -> List[int] | List[Tuple[str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -275,31 +284,42 @@ class Vk:
         Рассматриваются посты, выложенные не ранее, чем за
         time_limit секунд дл текущего момента
 
-        :param user_data: UserInfo
-        :param count: tuple
-        :param time_limit: int
-        :param times: bool
-        :return: List[str]
+        Parameters
+        ----------
+        user_data: UserInfo
+            Данные об аккаунте VK
+        count: Tuple[int]
+            Ограничители количества ссылок
+        time_limit: int
+            Ограничитель возраста рассматриваемых постов
+        times: bool
+            Режим работы (моменты времени или тексты для анализа токсичности)
+
+        Returns
+        -------
+        List[str] | List[Tuple[str]]
+            Список с моментами времени или с кортежами текстов и ссылок на посты
+
         """
         result = set()
 
-        if user_data['friends'] is not None:
-            for friend in user_data['friends'][:count[0]]:
-                try:
-                    posts = self.__vk.wall.get(owner_id=friend, count=100)
-                    for post in posts['items']:
-                        if post['date'] < time() - time_limit:
-                            break
-                        if post['comments']['count']:
-                            comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
-                            for comment in comments['items']:
-                                if comment['from_id'] == user_data['id']:
-                                    if times:
-                                        result.add(comment['date'])
-                                    else:
-                                        result.add(comment['text'])
-                except ApiError:
-                    pass
+        for friend in user_data['friends'][:count[0]] + [user_data['id']]:
+            try:
+                posts = self.__vk.wall.get(owner_id=friend, count=100)
+                for post in posts['items']:
+                    if post['date'] < time() - time_limit:
+                        break
+                    if post['comments']['count']:
+                        comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
+                        for comment in comments['items']:
+                            if comment['from_id'] == user_data['id']:
+                                if times:
+                                    result.add(comment['date'])
+                                else:
+                                    result.add((comment['text'],
+                                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
+            except ApiError:
+                pass
 
         if user_data['subscriptions']['users'] is not None:
             for user in user_data['friends'][:count[1]]:
@@ -315,7 +335,8 @@ class Vk:
                                     if times:
                                         result.add(comment['date'])
                                     else:
-                                        result.add(comment['text'])
+                                        result.add((comment['text'],
+                                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
                 except ApiError:
                     pass
 
@@ -333,7 +354,8 @@ class Vk:
                                     if times:
                                         result.add(comment['date'])
                                     else:
-                                        result.add(comment['text'])
+                                        result.add((comment['text'],
+                                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
                 except ApiError:
                     pass
 
@@ -341,7 +363,8 @@ class Vk:
             return sorted(list(result) + user_data['post_dates'])
 
         posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
-        return list(result) + [post['text'] for post in posts['items']]
+        return list(result) + [(post['text'],
+                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
 
     def check_toxicity(self, user_data: UserInfo) -> List[str]:
         """

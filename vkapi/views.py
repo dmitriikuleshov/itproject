@@ -4,6 +4,7 @@ import os
 from .vk_tools import Vk
 from main.models import VkAccount
 from .graph_creator import create_friends_graph, create_mutual_friends_graph
+from .visualization import Visualization
 
 
 def user_info_view(request):
@@ -18,6 +19,8 @@ def user_info_view(request):
         try:
             vk_info = vk.get_info(link)
             vk_friends_info = vk.get_common_connections(link)
+            visualization = Visualization(link)
+            visualization.create_activity_graph()
 
             # create_friends_graph('vkapi/templates/vkapi/friends-graph.html', vk_info)
             create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
@@ -29,7 +32,8 @@ def user_info_view(request):
 
             return response
 
-        except (TypeError, IndexError):
+        except (TypeError, IndexError) as e:
+            raise e
             return render(request, 'vkapi/user-info.html', {'error': True})
     else:
         return redirect('/')
