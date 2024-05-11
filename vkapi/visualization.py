@@ -11,6 +11,14 @@ import os
 
 class Visualization:
     def __init__(self, link: str):
+        """
+        Инициализирует объект Visualization для визуализации данных VK.
+
+        Parameters
+        ----------
+        link : str
+            Ссылка на профиль пользователя во ВКонтакте.
+        """
         self.vk = Vk(token=os.environ['VK_TOKEN'])
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
@@ -19,6 +27,14 @@ class Visualization:
         self.activity_graph = None
 
     def create_mutual_friends_graph(self, link_to_save_graph: str) -> None:
+        """
+        Создает и сохраняет визуализацию сети общих друзей пользователя.
+
+        Parameters
+        ----------
+        link_to_save_graph : str
+            Ссылка, по которой будет сохранен граф.
+        """
         self.vk_mutual_friends_info = self.vk.get_common_connections(self.link)
 
         self.mutual_graph.add_node(n_id=-1,
@@ -52,6 +68,14 @@ class Visualization:
         self.mutual_graph.save_graph(link_to_save_graph)
 
     def get_favourite_music(self) -> Union[List[str], None]:
+        """
+        Возвращает список из трех любимых музыкальных треков пользователя.
+
+        Returns
+        -------
+        Union[List[str], None]
+            Список названий треков или None, если музыка отсутствует.
+        """
         music = self.user_info["music"]
         print(music)
 
@@ -60,6 +84,15 @@ class Visualization:
         return music
 
     def get_toxicity(self) -> Tuple[str, List[str]]:
+        """
+        Определяет коэффициент токсичности и возвращает список токсичных постов пользователя.
+
+        Returns
+        -------
+        Tuple[str, List[str]]
+            Кортеж, содержащий коэффициент токсичности в виде строки и список токсичных постов.
+            Если у пользователя нет постов или ограничен доступ, возвращается соответствующее сообщение и пустой список.
+        """
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
             toxicity_coeff = self.get_toxicity_coefficient()
@@ -68,6 +101,14 @@ class Visualization:
             return "У пользователя нет постов или он ограничил доступ к своим записям", []
 
     def get_toxicity_coefficient(self) -> str:
+        """
+        Рассчитывает коэффициент токсичности постов пользователя.
+
+        Returns
+        -------
+        str
+            Строка с коэффициентом токсичности или сообщением об отсутствии доступных постов.
+        """
         all_posts = self.vk.get_activity(self.user_info, times=True)
         if all_posts is None or len(all_posts) == 0:
             return "У пользователя нет постов или он ограничил доступ к своим записям"
@@ -75,6 +116,14 @@ class Visualization:
                           len(all_posts)), 2))
 
     def get_user_subscriptions(self) -> List[UserInfo]:
+        """
+        Возвращает список подписок пользователя на других пользователей (не более пяти).
+
+        Returns
+        -------
+        List[UserInfo]
+            Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь.
+        """
         subscriptions = self.user_info.get("subscriptions")
         user_subscriptions = subscriptions.get("users")
         if user_subscriptions is not None:
@@ -84,6 +133,14 @@ class Visualization:
         return []
 
     def get_group_subscriptions(self) -> List[GroupInfo]:
+        """
+        Возвращает список подписок пользователя на группы (не более пяти).
+
+        Returns
+        -------
+        List[GroupInfo]
+            Список объектов с информацией о группах, на которые подписан исследуемый пользователь.
+        """
         subscriptions = self.user_info.get("subscriptions")
         group_subscriptions = subscriptions.get("groups")
         if group_subscriptions is not None:
@@ -93,6 +150,14 @@ class Visualization:
         return []
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
+        """
+        Создает и сохраняет интерактивный график активности пользователя в виде HTML-файла.
+
+        Parameters
+        ----------
+        link_to_save_graph : str
+            Ссылка, по которой будет сохранен HTML-файл с графиком.
+        """
         # Загрузка данных активности пользователя
         post_dates_raw = self.vk.get_activity(self.user_info, times=True)
 
