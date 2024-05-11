@@ -54,43 +54,48 @@ class Visualization:
     def get_favourite_music(self) -> Union[List[str], None]:
         music = self.user_info.get("music")
         if music is not None and len(music) > 3:
-            return self.user_info.get("music")[:3]
+            return music[:3]
         return music
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
         # Загрузка данных активности пользователя
-        post_dates = self.vk.get_activity(self.user_info, times=True)
+        post_dates_raw = self.vk.get_activity(self.user_info, times=True)
 
-        # Если список дат пуст, устанавливаем диапазон дат за последний год
-        if not post_dates:
-            end_date = datetime.now().date()
-            start_date = end_date - timedelta(days=365)
-            date_range = pd.date_range(start=start_date, end=end_date).date
-        else:
-            # Преобразование дат в формат даты
-            post_dates = pd.to_datetime(post_dates).date
+        # Преобразование дат в формат даты
+        post_dates = pd.to_datetime(post_dates_raw).date
 
-            # Создание полного списка дат на основе минимальной и максимальной даты
+        # Подсчет количества постов в каждую дату
+        date_counts = Counter(post_dates)
+
+        # Создание полного списка дат в диапазоне дат активности пользователя
+        if len(post_dates) > 0:
             start_date = min(post_dates)
-            end_date = max(post_dates)
-            date_range = pd.date_range(start=start_date, end=end_date).date
+        else:
+            start_date = pd.to_datetime(['2015-01-01 00:00:01']).date[0]
+        end_date = datetime.now()
+        all_dates = pd.date_range(start=start_date, end=end_date).date
 
         # Создание DataFrame с нулевыми значениями для каждой даты
-        df = pd.DataFrame(date_range, columns=['Date'])
-        df['Number of Posts'] = 0
+        all_dates_df = pd.DataFrame(all_dates, columns=['Date'])
+        all_dates_df['Number of Posts'] = 0
+
+        # Преобразование данных активности пользователя в DataFrame
+        activity_df = pd.DataFrame(list(date_counts.items()), columns=['Date', 'Number of Posts'])
+
+        # Объединение данных активности пользователя с полным списком дат
+        final_df = pd.merge(all_dates_df, activity_df, on='Date', how='left')
+        final_df['Number of Posts'] = final_df['Number of Posts_y'].fillna(0).astype(int)
 
         # Создание временного ряда
         fig = go.Figure()
 
         fig.add_trace(
-            go.Scatter(x=df['Date'], y=df['Number of Posts'])
+            go.Scatter(x=final_df['Date'], y=final_df['Number of Posts'])
         )
 
-        # Задание заголовка графика и размера графика
+        # Задание заголовка графика
         fig.update_layout(
-            title_text="User Posts Over Time with Range Slider",
-            height=600,  # Установка высоты графика в пикселях
-            width=900  # Установка ширины графика в пикселях
+            title_text="User Posts Over Time with Range Slider"
         )
 
         # Добавление ползунка выбора диапазона
