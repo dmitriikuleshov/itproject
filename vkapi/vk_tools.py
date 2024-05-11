@@ -7,7 +7,7 @@ from .toxicity_check import check_obscene_vocabulary
 from datetime import datetime
 from time import time
 
-from typing import List, TypedDict, Optional, Tuple, Dict
+from typing import List, TypedDict, Optional, Tuple
 
 
 class University(TypedDict, total=False):
@@ -43,6 +43,13 @@ class UserInfo(TypedDict, total=False):
     subscriptions: Optional[Subscriptions]
     post_dates: List[int]
     icon: Optional[str]
+
+
+class GroupInfo(TypedDict, total=False):
+    id: int
+    name: str
+    link: str
+    photo: str
 
 
 class Vk:
@@ -233,7 +240,7 @@ class Vk:
         Parameters
         ----------
         users_ids_list: List[int]
-            Ссылка на аккаунт VK
+            Список ID аккаунтов VK
 
         Returns
         -------
@@ -242,62 +249,48 @@ class Vk:
 
         """
         raw = self.__vk.users.get(user_ids=users_ids_list, fields='first_name, last_name, photo_50')
-        users_info_list = []
-        for raw_user in raw:
-            user_info = UserInfo(
-                id=int(raw_user["id"]),
-                first_name=raw_user.get("first_name"),
-                last_name=raw_user.get("last_name"),
-                icon=raw_user.get("photo_50")
-            )
-            users_info_list.append(user_info)
-        return users_info_list
+        list_of_user_info = []
 
-    def get_links_by_ids(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5)) -> Dict[str, List[List[str]]]:
+        for raw_user in raw:
+            list_of_user_info.append(UserInfo(
+                id=int(raw_user['id']),
+                first_name=raw_user.get('first_name'),
+                last_name=raw_user.get('last_name'),
+                icon=raw_user.get('photo_50')
+            ))
+
+        return list_of_user_info
+
+    def get_groups_list_info(self, groups_ids_list: List[int]) -> List[GroupInfo]:
         """
-        Метод, принимающий словарь с данными о пользователе и кортеж с количествами
-        ссылок, которые необходимо получить для каждой категории,
-        и возвращающий словарь с именами и ссылками на друзей, аккаунты и группы,
-        на которые подписан пользователь('friends', 'users', 'groups' соответственно)
+        Метод, возвращающий список данных о нескольких сообществах VK
 
         Parameters
         ----------
-        user_data: UserInfo
-            Данные об аккаунте VK
-        count: Tuple[int]
-            Ограничители количества ссылок
+        groups_ids_list: List[int]
+            Список ID сообществ VK
 
         Returns
         -------
-        Dict[str, List[List[str]]]
-            Словарь со списками ссылок на друзей и подписки
+        List[GroupInfo]
+            Список с объектами данных о сообществах
 
         """
-        friends, users, groups = [], [], []
+        raw = self.__vk.groups.getById(group_ids=groups_ids_list)
+        list_of_group_info = []
 
-        if user_data['friends'] is not None:
-            for elem in user_data['friends'][:count[0]]:
-                d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
-                friends.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
+        for group in raw:
+            list_of_group_info.append(GroupInfo(
+                id=group.get('id'),
+                name=group.get('name'),
+                link=f'https://vk.com/{group['screen_name']}' if 'screen_name' in group.keys() else None,
+                photo=group.get('photo_50')
+            ))
 
-        if user_data['subscriptions']['users'] is not None:
-            for elem in user_data['subscriptions']['users'][:count[1]]:
-                d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
-                users.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
-
-        if user_data['subscriptions']['groups'] is not None:
-            for elem in user_data['subscriptions']['groups'][:count[2]]:
-                d = self.__vk.groups.getById(group_id=elem, fields='name, screen_name')[0]
-                groups.append([d['name'], f'https://vk.com/{d["screen_name"]}'])
-
-        return {
-            'friends': friends,
-            'users': users,
-            'groups': groups
-        }
+        return list_of_group_info
 
     def get_activity(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str] | list[Tuple[str, str]]:
+                     times: bool = True) -> List[str] | List[Tuple[str, str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -335,6 +328,7 @@ class Vk:
                 ID проверяемого аккаунта
             is_groups: bool
                 Флаг, отвечающий за добавления минуса к ID группы
+
             """
             try:
                 posts = self.__vk.wall.get(owner_id=-_id if is_groups else _id, count=100)
