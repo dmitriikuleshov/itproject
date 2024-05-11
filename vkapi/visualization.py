@@ -1,10 +1,10 @@
 from pyvis.network import Network
-from .vk_tools import Vk, UserInfo
-from typing import List, Tuple, Optional, Union
+from .vk_tools import Vk, UserInfo, GroupInfo
+from typing import List, Union, Tuple
 from copy import deepcopy
 import pandas as pd
 from collections import Counter
-from datetime import datetime, timedelta
+from datetime import datetime
 import plotly.graph_objects as go
 import os
 
@@ -59,11 +59,13 @@ class Visualization:
             return music[:3]
         return music
 
-    def get_toxicity(self):
+    def get_toxicity(self) -> Tuple[str, List[str]]:
         try:
-            return self.vk.check_toxicity(self.user_info)
+            toxic_posts = self.vk.check_toxicity(self.user_info)
+            toxicity_coeff = self.get_toxicity_coefficient()
+            return toxicity_coeff, toxic_posts
         except TypeError:
-            return "У пользователя нет постов или он ограничил доступ к своим записям"
+            return "У пользователя нет постов или он ограничил доступ к своим записям", []
 
     def get_toxicity_coefficient(self) -> str:
         all_posts = self.vk.get_activity(self.user_info, times=True)
@@ -77,10 +79,18 @@ class Visualization:
         user_subscriptions = subscriptions.get("users")
         if user_subscriptions is not None:
             if len(user_subscriptions) > 5:
-                users = user_subscriptions[:5]
+                user_subscriptions = user_subscriptions[:5]
             return self.vk.get_users_list_info(user_subscriptions)
         return []
 
+    def get_group_subscriptions(self) -> List[GroupInfo]:
+        subscriptions = self.user_info.get("subscriptions")
+        group_subscriptions = subscriptions.get("groups")
+        if group_subscriptions is not None:
+            if len(group_subscriptions) > 5:
+                group_subscriptions = group_subscriptions[:5]
+            return self.vk.get_groups_list_info(group_subscriptions)
+        return []
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
         # Загрузка данных активности пользователя

@@ -45,6 +45,13 @@ class UserInfo(TypedDict, total=False):
     icon: Optional[str]
 
 
+class GroupInfo(TypedDict, total=False):
+    id: int
+    name: Optional[str]
+    link: Optional[str]
+    icon: Optional[str]
+
+
 class Vk:
     """
     Класс, отвечающий за подключение к VK API
@@ -68,7 +75,7 @@ class Vk:
         """
         self.__vk = vk_api.VkApi(token=token).get_api()
 
-    def get_id_from_link(self, link: str) -> str:
+    def get_id_from_link(self, link: str | Tuple[str]) -> str:
         """
         Метод, возвращающий ID пользователя по ссылке на его профиль
 
@@ -110,6 +117,31 @@ class Vk:
             return user_id
         else:
             raise TypeError
+
+    def get_groups_list_info(self, groups_ids_list: List[int]) -> List[GroupInfo]:
+        """
+        Метод, возвращающий список данных о нескольких сообществах VK
+        Parameters
+        ----------
+        groups_ids_list: List[int]
+            Список ID сообществ VK
+        Returns
+        -------
+        List[GroupInfo]
+            Список с объектами данных о сообществах
+        """
+        raw = self.__vk.groups.getById(group_ids=groups_ids_list)
+        list_of_group_info = []
+
+        for group in raw:
+            list_of_group_info.append(GroupInfo(
+                id=group.get('id'),
+                name=group.get('name'),
+                link=f'https://vk.com/{group["screen_name"]}' if 'screen_name' in group.keys() else None,
+                icon=group.get('photo_50')
+            ))
+
+        return list_of_group_info
 
     @staticmethod
     def convert_time(times: List[int]) -> List[str]:
@@ -417,7 +449,7 @@ class Vk:
         """
         return check_obscene_vocabulary(self.get_activity(user_data, times=False))
 
-    def get_mutual_friends(self, *links: Tuple[str]) -> List[UserInfo] | None:
+    def get_mutual_friends(self, *links: Tuple[str] | str) -> List[UserInfo] | None:
         """
         Метод, принимающий кортеж ссылок на пользователей и возвращающий
         List[UserInfo] - список информации об общих друзьях (UserInfo) для переданных ссылок.
@@ -431,7 +463,7 @@ class Vk:
         _friends_sets = []
         for _id in _ids:
             try:
-                friends = set(self.__vk.friends.get(user_id=_id, count=10)["items"])
+                friends = set(self.__vk.friends.get(user_id=_id, count=20)["items"])
                 _friends_sets.append(friends)
             except Exception as e:
                 # print(f"Ошибка при получении списка друзей для пользователя с ID {_id}: {e}")
@@ -452,7 +484,7 @@ class Vk:
         return: List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None
         """
         _id = self.get_id_from_link(link)
-        _friends = self.__vk.friends.get(user_id=_id, count=10)["items"]
+        _friends = self.__vk.friends.get(user_id=_id, count=20)["items"]
         connections = []
         for friend in self.get_users_list_info(_friends):
             connections.append(

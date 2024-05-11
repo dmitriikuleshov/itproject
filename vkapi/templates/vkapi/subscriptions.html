@@ -55,10 +55,10 @@
 
     <h2 class="mt-5 mb-3">Подписки на сообщества</h2>
     <div class="list-group">
-        {% for subscription in community_subscriptions %}
+        {% for subscription in group_subscriptions %}
         <div class="list-group-item subscription-item">
             <div class="avatar">
-                <img src="{{ subscription.avatar_url }}" alt="Community Avatar">
+                <img src="{{ subscription.icon }}" alt="Community Avatar">
             </div>
             <div class="name">{{ subscription.name }}</div>
         </div>
