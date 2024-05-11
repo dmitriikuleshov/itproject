@@ -297,7 +297,7 @@ class Vk:
         }
 
     def get_activity(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str] | List[Tuple[str]]:
+                     times: bool = True) -> List[str] | List[Tuple[str]] | None:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -387,10 +387,16 @@ class Vk:
             if user_data['post_dates'] is not None:
                 return self.convert_time(sorted(list(result) + user_data['post_dates']))
             return list(result)
+        try:
+            posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
 
-        posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
-        return list(result) + [(post['text'],
-                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
+            return list(result) + [(post['text'],
+                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
+
+        except ApiError:
+            pass
+
+        return None
 
     def check_toxicity(self, user_data: UserInfo) -> List[Optional[str]]:
         """

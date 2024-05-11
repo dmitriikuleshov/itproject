@@ -60,12 +60,17 @@ class Visualization:
         return music
 
     def get_toxicity(self):
-        print(self.vk.check_toxicity(self.user_info))
-        return self.vk.check_toxicity(self.user_info)
+        try:
+            return self.vk.check_toxicity(self.user_info)
+        except TypeError:
+            return "У пользователя нет постов или он ограничил доступ к своим записям"
 
-    def get_toxicity_coefficient(self):
-        return (len(self.vk.check_toxicity(self.user_info)) /
-                len(self.vk.get_activity(self.user_info, times=True)))
+    def get_toxicity_coefficient(self) -> str:
+        all_posts = self.vk.get_activity(self.user_info, times=True)
+        if all_posts is None or len(all_posts) == 0:
+            return "У пользователя нет постов или он ограничил доступ к своим записям"
+        return str(round((len(self.vk.check_toxicity(self.user_info)) /
+                          len(all_posts)), 2))
 
     def get_user_subscriptions(self) -> List[UserInfo]:
         subscriptions = self.user_info.get("subscriptions")
@@ -75,6 +80,7 @@ class Visualization:
                 users = user_subscriptions[:5]
             return self.vk.get_users_list_info(user_subscriptions)
         return []
+
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
         # Загрузка данных активности пользователя

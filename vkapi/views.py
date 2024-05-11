@@ -19,8 +19,7 @@ def user_info_view(request):
         try:
             vk_friends_info = vk.get_common_connections(link)
             visualization = Visualization(link)
-            visualization.get_favourite_music()
-            visualization.get_toxicity()
+            #visualization.get_toxicity()
             visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
 
             create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
