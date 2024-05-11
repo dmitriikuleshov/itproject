@@ -1,3 +1,5 @@
+"""Настройки панели администратора приложения main"""
+
 from django.contrib import admin
 
 from .models import VkAccount

@@ -1,3 +1,5 @@
+"""Функция анализа текстов на наличие нецензурной лексики"""
+
 from requests import get
 from typing import List, Tuple, Optional
 

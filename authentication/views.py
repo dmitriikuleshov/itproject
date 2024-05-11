@@ -1,3 +1,5 @@
+"""Обработка страниц приложения authentication"""
+
 from django.contrib.auth.hashers import make_password, check_password
 from django.shortcuts import render, redirect
 
@@ -7,10 +9,21 @@ from .models import User
 
 def auth_view(request):
     """
-    Отправка страницы регистрации,
-    проверка нового пользователя на существование
-    и корректность пароля, процедура регистрации,
+    Отправка страницы регистрации, проверка
+    нового пользователя на существование и
+    корректность пароля, процедура регистрации,
     установка cookie.
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse
+        Страница регистрации
+
     """
     user_form = UserForm()
 
@@ -42,6 +55,17 @@ def login_view(request):
     """
     Вход в систему, проверка существования пользователя
     и корректности пароля, установка cookie.
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse
+        Страница входа в систему
+
     """
     login_form = LoginForm()
 

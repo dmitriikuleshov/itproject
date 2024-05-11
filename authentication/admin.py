@@ -1,3 +1,5 @@
+"""Настройки панели администратора приложения authentication"""
+
 from django.contrib import admin
 
 from .models import User

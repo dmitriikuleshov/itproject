@@ -1,3 +1,8 @@
+"""
+Описание объектов данных об аккаунтах VK, а также
+класс, отвечающий за доступ к VK API
+"""
+
 import re
 import vk_api
 
@@ -11,6 +16,22 @@ from typing import List, TypedDict, Optional, Tuple
 
 
 class University(TypedDict, total=False):
+    """
+    Словарь с данными об высшем учебном заведении,
+    в котором обучался владелец аккаунта
+
+    Attributes
+    ----------
+    name: Optional[str]
+        Название университета
+    faculty: Optional[str]
+        Название факультета
+    form: Optional[str]
+        Форма образование (очная/заочная)
+    graduation: Optional[int]
+        Учёная степень
+
+    """
     name: Optional[str]
     faculty: Optional[str]
     form: Optional[str]
@@ -18,23 +39,82 @@ class University(TypedDict, total=False):
 
 
 class Subscriptions(TypedDict, total=False):
+    """
+    Словарь со списками подписок аккаунта VK
+    на пользователей и сообщества
+
+    Attributes
+    ----------
+    users: List[int]
+        Список ID пользователей
+    groups: List[int]
+        Список ID сообществ
+
+    """
     users: List[int]
     groups: List[int]
 
 
 class UserInfo(TypedDict, total=False):
+    """
+    Словарь с основными данными об аккаунте VK
+
+    Attributes
+    ----------
+    id: int
+        Идентификатор пользователя
+    first_name: str
+        Имя пользователя
+    last_name: str
+        Фамилия пользователя
+    birthday: Optional[int]
+        Дата рождения
+    country: Optional[str]
+        Страна проживания
+    city: Optional[str]
+        Город проживания
+    interests: Optional[str]
+        Интересы (из профиля)
+    books: Optional[str]
+        Любимые книги
+    games: Optional[str]
+        Любимые игры
+    movies: Optional[str]
+        Любимые фильмы
+    activities: Optional[str]
+        Увлечения
+    music: Optional[str]
+        Любимая музыка
+    university: Optional[University]
+        Объект данных о высшем образовании
+    relatives: List[str]
+        Список имён родственников
+    friends_count: Optional[int]
+        Количество друзей
+    followers_count: Optional[int]
+        Количество подписчиков
+    friends: List[int]
+        Список идентификаторов друзей
+    subscriptions: Optional[Subscriptions]
+        Список объектов со списками подписок
+    post_dates: List[int]
+        Список дат публикаций постов
+    icon: Optional[str]
+        Ссылка на иконку пользователя
+
+    """
     id: int
     first_name: str
     last_name: str
     birthday: Optional[int]
     country: Optional[str]
     city: Optional[str]
-    interests: List[str]
-    books: List[str]
-    games: List[str]
-    movies: List[str]
-    activities: List[str]
-    music: List[str]
+    interests: Optional[str]
+    books: Optional[str]
+    games: Optional[str]
+    movies: Optional[str]
+    activities: Optional[str]
+    music: Optional[str]
     university: Optional[University]
     relatives: List[str]
     friends_count: Optional[int]
@@ -46,6 +126,21 @@ class UserInfo(TypedDict, total=False):
 
 
 class GroupInfo(TypedDict, total=False):
+    """
+    Словарь с данными о сообществе VK
+
+    Attributes
+    ----------
+    id: int
+        Идентификатор сообщества
+    name: str
+        Название сообщества
+    link: str
+        Ссылка на сообщество
+    photo: str
+        Ссылка на иконку сообщества
+
+    """
     id: int
     name: str
     link: str
@@ -60,6 +155,25 @@ class Vk:
     ----------
     __vk: VkApiMethod
         Объект для доступа к методам VkAPI
+
+    Methods
+    -------
+    get_id_from_link(link)
+        Получение ID пользователя по ссылке
+    convert_time(times)
+        Преобразование формата моментов времени
+    get_info(link)
+        Получение информации об аккаунте
+    get_info_short(link)
+        Получение краткой информации об аккаунте
+    get_users_list_info(users_ids_list)
+        Получение краткой информации о нескольких аккаунтах
+    get_groups_list_info(groups_ids_list)
+        Получение краткой информации о нескольких сообществах
+    get_activity(user_data, count, time_limit, times)
+        Получение данных об активности аккаунта
+    check_toxicity(user_data)
+        Анализ публикация аккаунта на ненормативную лексику
 
     """
 
@@ -95,10 +209,10 @@ class Vk:
             В случае некорректности ссылки на аккаунт
 
         """
-        id_reg_expression = (r"(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel="
-                             r"|id=*|photo|videos|albums|audios|topic)(-?"
-                             r"[\d]+)|(?:club|public)([\d]*)|(?<=\.com/)("
-                             r"[a-zA-Z\d._]*)")
+        id_reg_expression = (r'(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel='
+                             r'|id=*|photo|videos|albums|audios|topic)(-?'
+                             r'[\d]+)|(?:club|public)([\d]*)|(?<=\.com/)('
+                             r'[a-zA-Z\d._]*)')
         find_results = re.findall(id_reg_expression, link)
         id_or_name = None
         if find_results:
@@ -163,6 +277,10 @@ class Vk:
                                                             'books, education, games, '
                                                             'interests, movies, music, personal, '
                                                             'relatives, counters, photo_50')[0]
+        relatives = []
+        if 'relatives' in raw.keys():
+            relatives = [rel['name'] for rel in raw['relatives']]
+
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
             subs = self.__vk.users.getSubscriptions(user_id=_id)
@@ -173,10 +291,10 @@ class Vk:
             friends = sub_users = sub_groups = posts = None
 
         user_university = University(
-            name=raw.get("university_name"),
-            faculty=raw.get("faculty_name"),
-            form=raw.get("education_form"),
-            graduation=raw.get("graduation")
+            name=raw.get('university_name'),
+            faculty=raw.get('faculty_name'),
+            form=raw.get('education_form'),
+            graduation=raw.get('graduation')
         )
 
         user_subscriptions = Subscriptions(
@@ -186,25 +304,25 @@ class Vk:
 
         user_info = UserInfo(
             id=int(_id),
-            first_name=raw.get("first_name"),
-            last_name=raw.get("last_name"),
-            birthday=raw.get("bdate"),
+            first_name=raw.get('first_name'),
+            last_name=raw.get('last_name'),
+            birthday=raw.get('bdate'),
             country=raw['country']['title'] if 'country' in raw.keys() else None,
             city=raw['city']['title'] if 'city' in raw.keys() else None,
-            interests=raw.get("interests"),
-            books=raw.get("books"),
-            games=raw.get("games"),
-            movies=raw.get("movies"),
-            activities=raw.get("activities"),
-            music=raw.get("music"),
+            interests=raw.get('interests'),
+            books=raw.get('books'),
+            games=raw.get('games'),
+            movies=raw.get('movies'),
+            activities=raw.get('activities'),
+            music=raw.get('music'),
             university=user_university,
-            relatives=raw.get("relatives"),
-            friends_count=raw["counters"].get("friends"),
-            followers_count=raw["counters"].get("followers"),
+            relatives=relatives,
+            friends_count=raw['counters'].get('friends'),
+            followers_count=raw['counters'].get('followers'),
             friends=friends,
             subscriptions=user_subscriptions,
             post_dates=posts,
-            icon=raw.get("photo_50")
+            icon=raw.get('photo_50')
         )
         return user_info
 
@@ -227,9 +345,9 @@ class Vk:
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
         user_info = UserInfo(
             id=int(_id),
-            first_name=raw.get("first_name"),
-            last_name=raw.get("last_name"),
-            icon=raw.get("photo_50")
+            first_name=raw.get('first_name'),
+            last_name=raw.get('last_name'),
+            icon=raw.get('photo_50')
         )
         return user_info
 
