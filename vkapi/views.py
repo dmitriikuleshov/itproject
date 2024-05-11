@@ -17,23 +17,27 @@ def user_info_view(request):
         vk = Vk(token=os.environ['VK_TOKEN'])
 
         try:
-            vk_info = vk.get_info(link)
             vk_friends_info = vk.get_common_connections(link)
             visualization = Visualization(link)
-            print("MUSIC", visualization.get_favourite_music())
+            visualization.get_favourite_music()
+            visualization.get_toxicity()
             visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
 
             create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
-                                        vk_info, vk_friends_info)
-            response = render(request, 'vkapi/user-info.html', vk_info)
+                                        visualization.user_info, vk_friends_info)
+            response = render(request, 'vkapi/user-info.html',
+                              context={'first_name': visualization.user_info['first_name'],
+                                       'last_name': visualization.user_info['last_name'],
+                                       'birthday': visualization.user_info['birthday'],
+                                       'city': visualization.user_info['city'],
+                                       'user_subscriptions': visualization.get_user_subscriptions()})
 
             if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
                 VkAccount(link=link, creator=request.COOKIES['login']).save()
 
             return response
 
-        except (TypeError, IndexError) as e:
-            raise e
+        except (TypeError, IndexError):
             return render(request, 'vkapi/user-info.html', {'error': True})
     else:
         return redirect('/')

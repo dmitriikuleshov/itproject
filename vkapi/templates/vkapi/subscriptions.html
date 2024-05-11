@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Subscriptions</title>
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .subscription-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .avatar {
+        margin-right: 15px;
+        width: 60px; /* Размер аватара */
+        height: 60px; /* Размер аватара */
+        border-radius: 50%; /* Круглый аватар */
+        overflow: hidden;
+        display: inline-block;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #495057;
+    }
+</style>
+</head>
+<body>
+
+<div class="container py-4">
+    <h2 class="mb-3">Подписки на пользователей</h2>
+    <div class="list-group">
+        {% for subscription in user_subscriptions %}
+        <div class="list-group-item subscription-item">
+            <div class="avatar">
+                <img src="{{ subscription.icon }}" alt="Avatar">
+            </div>
+            <div class="name">{{ subscription.first_name }} {{ subscription.last_name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h2 class="mt-5 mb-3">Подписки на сообщества</h2>
+    <div class="list-group">
+        {% for subscription in community_subscriptions %}
+        <div class="list-group-item subscription-item">
+            <div class="avatar">
+                <img src="{{ subscription.avatar_url }}" alt="Community Avatar">
+            </div>
+            <div class="name">{{ subscription.name }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

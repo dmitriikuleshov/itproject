@@ -52,10 +52,29 @@ class Visualization:
         self.mutual_graph.save_graph(link_to_save_graph)
 
     def get_favourite_music(self) -> Union[List[str], None]:
-        music = self.user_info.get("music")
+        music = self.user_info["music"]
+        print(music)
+
         if music is not None and len(music) > 3:
             return music[:3]
         return music
+
+    def get_toxicity(self):
+        print(self.vk.check_toxicity(self.user_info))
+        return self.vk.check_toxicity(self.user_info)
+
+    def get_toxicity_coefficient(self):
+        return (len(self.vk.check_toxicity(self.user_info)) /
+                len(self.vk.get_activity(self.user_info, times=True)))
+
+    def get_user_subscriptions(self) -> List[UserInfo]:
+        subscriptions = self.user_info.get("subscriptions")
+        user_subscriptions = subscriptions.get("users")
+        if user_subscriptions is not None:
+            if len(user_subscriptions) > 5:
+                users = user_subscriptions[:5]
+            return self.vk.get_users_list_info(user_subscriptions)
+        return []
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
         # Загрузка данных активности пользователя
