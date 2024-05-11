@@ -20,9 +20,9 @@ def user_info_view(request):
             vk_info = vk.get_info(link)
             vk_friends_info = vk.get_common_connections(link)
             visualization = Visualization(link)
-            visualization.create_activity_graph()
+            print("MUSIC", visualization.get_favourite_music())
+            visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
 
-            # create_friends_graph('vkapi/templates/vkapi/friends-graph.html', vk_info)
             create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
                                         vk_info, vk_friends_info)
             response = render(request, 'vkapi/user-info.html', vk_info)

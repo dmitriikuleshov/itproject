@@ -6,7 +6,6 @@ from vk_api.exceptions import ApiError
 from datetime import datetime
 from time import time
 
-
 from .toxicity_check import check_obscene_vocabulary
 from typing import List, TypedDict, Optional, Tuple, Dict
 
@@ -327,23 +326,24 @@ class Vk:
         """
         result = set()
 
-        for friend in user_data['friends'][:count[0]] + [user_data['id']]:
-            try:
-                posts = self.__vk.wall.get(owner_id=friend, count=100)
-                for post in posts['items']:
-                    if post['date'] < time() - time_limit:
-                        break
-                    if post['comments']['count']:
-                        comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
-                        for comment in comments['items']:
-                            if comment['from_id'] == user_data['id']:
-                                if times:
-                                    result.add(comment['date'])
-                                else:
-                                    result.add((comment['text'],
-                                                f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
-            except ApiError:
-                pass
+        if user_data['friends'] is not None:
+            for friend in user_data['friends'][:count[0]] + [user_data['id']]:
+                try:
+                    posts = self.__vk.wall.get(owner_id=friend, count=100)
+                    for post in posts['items']:
+                        if post['date'] < time() - time_limit:
+                            break
+                        if post['comments']['count']:
+                            comments = self.__vk.wall.getComments(owner_id=friend, post_id=post['id'], count=100)
+                            for comment in comments['items']:
+                                if comment['from_id'] == user_data['id']:
+                                    if times:
+                                        result.add(comment['date'])
+                                    else:
+                                        result.add((comment['text'],
+                                                    f'https://vk.com/wall{user_data["id"]}_{post["id"]}'))
+                except ApiError:
+                    pass
 
         if user_data['subscriptions']['users'] is not None:
             for user in user_data['friends'][:count[1]]:
@@ -384,7 +384,9 @@ class Vk:
                     pass
 
         if times:
-            return self.convert_time(sorted(list(result) + user_data['post_dates']))
+            if user_data['post_dates'] is not None:
+                return self.convert_time(sorted(list(result) + user_data['post_dates']))
+            return list(result)
 
         posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
         return list(result) + [(post['text'],
