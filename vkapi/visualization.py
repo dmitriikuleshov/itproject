@@ -83,7 +83,7 @@ class Visualization:
             return music[:3]
         return music
 
-    def get_toxicity(self) -> Tuple[str, List[str]]:
+    def get_toxicity(self) -> Tuple[str, Union[List[str], None], List[str]]:
         """
         Определяет коэффициент токсичности и возвращает список токсичных постов пользователя.
 
@@ -96,9 +96,10 @@ class Visualization:
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
             toxicity_coeff = self.get_toxicity_coefficient()
-            return toxicity_coeff, toxic_posts
+            all_posts = self.user_info.get("post_dates")
+            return toxicity_coeff, all_posts, toxic_posts
         except TypeError:
-            return "У пользователя нет постов или он ограничил доступ к своим записям", []
+            return "У пользователя нет постов или он ограничил доступ к своим записям", [], []
 
     def get_toxicity_coefficient(self) -> str:
         """
