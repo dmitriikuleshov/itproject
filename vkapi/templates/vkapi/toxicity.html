@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Токсичность постов</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Ваши стили */
+    </style>
+</head>
+<body class="container">
+
+<div class="header">
+    <h1>Анализ токсичности постов</h1>
+</div>
+
+{% if toxicity.1 %}
+    <div class="text-center mb-4">
+        <span class="toxicity-coeff">Коэффициент токсичности: {{ toxicity.0 }}</span>
+    </div>
+    {% if toxicity.2 %}
+        <ul class="toxic-posts-list">
+            <h2>Токсичные посты:</h2>
+            {% for post in toxicity.2 %}
+                <li class="toxic-post-item">
+                    <a href="{{ post }}" target="_blank" class="toxic-post-link">{{ post }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="text-center">
+            <h5>У пользователя нет токсичных постов.</h5>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="text-center">
+        <p>{{ toxicity.0 }}</p>
+    </div>
+{% endif %}
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
