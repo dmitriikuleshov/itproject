@@ -6,7 +6,8 @@ import os
 
 from .vk_tools import Vk
 from main.models import VkAccount
-from .graph_creator import create_friends_graph
+from .graph_creator import create_mutual_friends_graph
+from .visualization import Visualization
 
 
 def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
@@ -30,9 +31,23 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
         vk = Vk(token=os.environ['VK_TOKEN'])
 
         try:
-            vk_info = vk.get_info(link)
-            create_friends_graph('vkapi/templates/vkapi/friends-graph.html', vk_info)
-            response = render(request, 'vkapi/user-info.html', vk_info)
+            vk_friends_info = vk.get_common_connections(link)
+            visualization = Visualization(link)
+            # visualization.get_toxicity()
+            visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
+
+            create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
+                                        visualization.user_info, vk_friends_info)
+
+            context = {'first_name': visualization.user_info['first_name'],
+                       'last_name': visualization.user_info['last_name'],
+                       'birthday': visualization.user_info['birthday'],
+                       'city': visualization.user_info['city'],
+                       'user_subscriptions': visualization.get_user_subscriptions(),
+                       'group_subscriptions': visualization.get_group_subscriptions(),
+                       'toxicity': visualization.get_toxicity()}
+            response = render(request, 'vkapi/user-info.html',
+                              context=context)
 
             if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
                 VkAccount(link=link, creator=request.COOKIES['login']).save()

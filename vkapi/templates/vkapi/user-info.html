@@ -9,7 +9,10 @@
         {% if city %}
             <h3>Город {{ city }}</h3>
         {% endif %}<br>
-        {% include 'vkapi/friends-graph.html' %}
+        {% include 'vkapi/mutual-friends-graph.html' %}
+        {% include 'vkapi/activity-graph.html' %}
+        {% include 'vkapi/subscriptions.html' %}
+        {% include 'vkapi/toxicity.html' %}
     {% else %}
         <p id="error">Ошибка! Данные объекта по ссылке не доступны.</p>
     {% endif %}
