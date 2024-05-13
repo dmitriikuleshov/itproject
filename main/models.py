@@ -1,3 +1,5 @@
+"""Модели базы данных приложения vkapi"""
+
 from django.db import models
 
 

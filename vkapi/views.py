@@ -1,3 +1,6 @@
+"""Обработка страниц приложения vkapi"""
+
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 import os
 
@@ -7,10 +10,21 @@ from .graph_creator import create_mutual_friends_graph
 from .visualization import Visualization
 
 
-def user_info_view(request):
+def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     """
     Получение данных о пользователе, переданном по ссылке,
     высылка страницы с полученными данными.
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse | HttpResponseRedirect
+        Страница с информацией об аккаунте или перенаправление на главную
+
     """
     if request.method == 'GET':
         link = request.GET.get('link')

@@ -1,3 +1,5 @@
+"""URL-маршруты приложения authentication"""
+
 from django.urls import path
 
 from . import views

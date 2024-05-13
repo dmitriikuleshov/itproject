@@ -1,16 +1,37 @@
+"""
+Описание объектов данных об аккаунтах VK, а также
+класс, отвечающий за доступ к VK API
+"""
+
 import re
 import vk_api
 
 from vk_api.exceptions import ApiError
+from .toxicity_check import check_obscene_vocabulary
 
 from datetime import datetime
 from time import time
 
-from .toxicity_check import check_obscene_vocabulary
-from typing import List, TypedDict, Optional, Tuple, Dict
+from typing import List, TypedDict, Optional, Tuple
 
 
 class University(TypedDict, total=False):
+    """
+    Словарь с данными об высшем учебном заведении,
+    в котором обучался владелец аккаунта
+
+    Attributes
+    ----------
+    name: Optional[str]
+        Название университета
+    faculty: Optional[str]
+        Название факультета
+    form: Optional[str]
+        Форма образование (очная/заочная)
+    graduation: Optional[int]
+        Учёная степень
+
+    """
     name: Optional[str]
     faculty: Optional[str]
     form: Optional[str]
@@ -18,23 +39,82 @@ class University(TypedDict, total=False):
 
 
 class Subscriptions(TypedDict, total=False):
+    """
+    Словарь со списками подписок аккаунта VK
+    на пользователей и сообщества
+
+    Attributes
+    ----------
+    users: List[int]
+        Список ID пользователей
+    groups: List[int]
+        Список ID сообществ
+
+    """
     users: List[int]
     groups: List[int]
 
 
 class UserInfo(TypedDict, total=False):
+    """
+    Словарь с основными данными об аккаунте VK
+
+    Attributes
+    ----------
+    id: int
+        Идентификатор пользователя
+    first_name: str
+        Имя пользователя
+    last_name: str
+        Фамилия пользователя
+    birthday: Optional[int]
+        Дата рождения
+    country: Optional[str]
+        Страна проживания
+    city: Optional[str]
+        Город проживания
+    interests: Optional[str]
+        Интересы (из профиля)
+    books: Optional[str]
+        Любимые книги
+    games: Optional[str]
+        Любимые игры
+    movies: Optional[str]
+        Любимые фильмы
+    activities: Optional[str]
+        Увлечения
+    music: Optional[str]
+        Любимая музыка
+    university: Optional[University]
+        Объект данных о высшем образовании
+    relatives: List[str]
+        Список имён родственников
+    friends_count: Optional[int]
+        Количество друзей
+    followers_count: Optional[int]
+        Количество подписчиков
+    friends: List[int]
+        Список идентификаторов друзей
+    subscriptions: Optional[Subscriptions]
+        Список объектов со списками подписок
+    post_dates: List[int]
+        Список дат публикаций постов
+    icon: Optional[str]
+        Ссылка на иконку пользователя
+
+    """
     id: int
     first_name: str
     last_name: str
     birthday: Optional[int]
     country: Optional[str]
     city: Optional[str]
-    interests: List[str]
-    books: List[str]
-    games: List[str]
-    movies: List[str]
-    activities: List[str]
-    music: List[str]
+    interests: Optional[str]
+    books: Optional[str]
+    games: Optional[str]
+    movies: Optional[str]
+    activities: Optional[str]
+    music: Optional[str]
     university: Optional[University]
     relatives: List[str]
     friends_count: Optional[int]
@@ -46,10 +126,25 @@ class UserInfo(TypedDict, total=False):
 
 
 class GroupInfo(TypedDict, total=False):
+    """
+    Словарь с данными о сообществе VK
+
+    Attributes
+    ----------
     id: int
-    name: Optional[str]
-    link: Optional[str]
-    icon: Optional[str]
+        Идентификатор сообщества
+    name: str
+        Название сообщества
+    link: str
+        Ссылка на сообщество
+    photo: str
+        Ссылка на иконку сообщества
+
+    """
+    id: int
+    name: str
+    link: str
+    photo: str
 
 
 class Vk:
@@ -60,6 +155,25 @@ class Vk:
     ----------
     __vk: VkApiMethod
         Объект для доступа к методам VkAPI
+
+    Methods
+    -------
+    get_id_from_link(link)
+        Получение ID пользователя по ссылке
+    convert_time(times)
+        Преобразование формата моментов времени
+    get_info(link)
+        Получение информации об аккаунте
+    get_info_short(link)
+        Получение краткой информации об аккаунте
+    get_users_list_info(users_ids_list)
+        Получение краткой информации о нескольких аккаунтах
+    get_groups_list_info(groups_ids_list)
+        Получение краткой информации о нескольких сообществах
+    get_activity(user_data, count, time_limit, times)
+        Получение данных об активности аккаунта
+    check_toxicity(user_data)
+        Анализ публикация аккаунта на ненормативную лексику
 
     """
 
@@ -75,7 +189,7 @@ class Vk:
         """
         self.__vk = vk_api.VkApi(token=token).get_api()
 
-    def get_id_from_link(self, link: str | Tuple[str]) -> str:
+    def get_id_from_link(self, link: str) -> int:
         """
         Метод, возвращающий ID пользователя по ссылке на его профиль
 
@@ -86,7 +200,7 @@ class Vk:
 
         Returns
         -------
-        str
+        int
             ID пользователя
 
         Raises
@@ -95,10 +209,10 @@ class Vk:
             В случае некорректности ссылки на аккаунт
 
         """
-        id_reg_expression = (r"(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel="
-                             r"|id=*|photo|videos|albums|audios|topic)(-?"
-                             r"[\d]+)|(?:club|public)([\d]*)|(?<=\.com/)("
-                             r"[a-zA-Z\d._]*)")
+        id_reg_expression = (r'(^-?[\d]+)|(?:feed\?\w?=)?(?:wall|im\?sel='
+                             r'|id=*|photo|videos|albums|audios|topic)(-?'
+                             r'[\d]+)|(?:club|public)([\d]*)|(?<=\.com/)('
+                             r'[a-zA-Z\d._]*)')
         find_results = re.findall(id_reg_expression, link)
         id_or_name = None
         if find_results:
@@ -109,7 +223,7 @@ class Vk:
                 try:
                     resolved_name = self.__vk.utils.resolveScreenName(
                         screen_name=id_or_name[0])
-                    user_id = resolved_name['object_id'] if resolved_name['type'] == 'user' else None
+                    user_id = int(resolved_name['object_id']) if resolved_name['type'] == 'user' else None
                     if user_id is None:
                         raise TypeError
                 except KeyError:
@@ -117,31 +231,6 @@ class Vk:
             return user_id
         else:
             raise TypeError
-
-    def get_groups_list_info(self, groups_ids_list: List[int]) -> List[GroupInfo]:
-        """
-        Метод, возвращающий список данных о нескольких сообществах VK
-        Parameters
-        ----------
-        groups_ids_list: List[int]
-            Список ID сообществ VK
-        Returns
-        -------
-        List[GroupInfo]
-            Список с объектами данных о сообществах
-        """
-        raw = self.__vk.groups.getById(group_ids=groups_ids_list)
-        list_of_group_info = []
-
-        for group in raw:
-            list_of_group_info.append(GroupInfo(
-                id=group.get('id'),
-                name=group.get('name'),
-                link=f'https://vk.com/{group["screen_name"]}' if 'screen_name' in group.keys() else None,
-                icon=group.get('photo_50')
-            ))
-
-        return list_of_group_info
 
     @staticmethod
     def convert_time(times: List[int]) -> List[str]:
@@ -188,6 +277,10 @@ class Vk:
                                                             'books, education, games, '
                                                             'interests, movies, music, personal, '
                                                             'relatives, counters, photo_50')[0]
+        relatives = []
+        if 'relatives' in raw.keys():
+            relatives = [rel['name'] for rel in raw['relatives']]
+
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
             subs = self.__vk.users.getSubscriptions(user_id=_id)
@@ -198,10 +291,10 @@ class Vk:
             friends = sub_users = sub_groups = posts = None
 
         user_university = University(
-            name=raw.get("university_name"),
-            faculty=raw.get("faculty_name"),
-            form=raw.get("education_form"),
-            graduation=raw.get("graduation")
+            name=raw.get('university_name'),
+            faculty=raw.get('faculty_name'),
+            form=raw.get('education_form'),
+            graduation=raw.get('graduation')
         )
 
         user_subscriptions = Subscriptions(
@@ -210,27 +303,28 @@ class Vk:
         )
 
         user_info = UserInfo(
-            id=int(_id),
-            first_name=raw.get("first_name"),
-            last_name=raw.get("last_name"),
-            birthday=raw.get("bdate"),
+            id=_id,
+            first_name=raw.get('first_name'),
+            last_name=raw.get('last_name'),
+            birthday=raw.get('bdate'),
             country=raw['country']['title'] if 'country' in raw.keys() else None,
             city=raw['city']['title'] if 'city' in raw.keys() else None,
-            interests=raw.get("interests"),
-            books=raw.get("books"),
-            games=raw.get("games"),
-            movies=raw.get("movies"),
-            activities=raw.get("activities"),
-            music=raw.get("music"),
+            interests=raw.get('interests'),
+            books=raw.get('books'),
+            games=raw.get('games'),
+            movies=raw.get('movies'),
+            activities=raw.get('activities'),
+            music=raw.get('music'),
             university=user_university,
-            relatives=raw.get("relatives"),
-            friends_count=raw["counters"].get("friends"),
-            followers_count=raw["counters"].get("followers"),
+            relatives=relatives,
+            friends_count=raw['counters'].get('friends'),
+            followers_count=raw['counters'].get('followers'),
             friends=friends,
             subscriptions=user_subscriptions,
             post_dates=posts,
-            icon=raw.get("photo_50")
+            icon=raw.get('photo_50')
         )
+
         return user_info
 
     def get_info_short(self, link: str) -> UserInfo:
@@ -251,10 +345,10 @@ class Vk:
         _id = self.get_id_from_link(link)
         raw = self.__vk.users.get(user_id=_id, fields='first_name, last_name, photo_50')[0]
         user_info = UserInfo(
-            id=int(_id),
-            first_name=raw.get("first_name"),
-            last_name=raw.get("last_name"),
-            icon=raw.get("photo_50")
+            id=_id,
+            first_name=raw.get('first_name'),
+            last_name=raw.get('last_name'),
+            icon=raw.get('photo_50')
         )
         return user_info
 
@@ -265,7 +359,7 @@ class Vk:
         Parameters
         ----------
         users_ids_list: List[int]
-            Ссылка на аккаунт VK
+            Список ID аккаунтов VK
 
         Returns
         -------
@@ -274,62 +368,48 @@ class Vk:
 
         """
         raw = self.__vk.users.get(user_ids=users_ids_list, fields='first_name, last_name, photo_50')
-        users_info_list = []
-        for raw_user in raw:
-            user_info = UserInfo(
-                id=int(raw_user["id"]),
-                first_name=raw_user.get("first_name"),
-                last_name=raw_user.get("last_name"),
-                icon=raw_user.get("photo_50")
-            )
-            users_info_list.append(user_info)
-        return users_info_list
+        list_of_user_info = []
 
-    def get_links_by_ids(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5)) -> Dict[str, List[List[str]]]:
+        for raw_user in raw:
+            list_of_user_info.append(UserInfo(
+                id=raw_user['id'],
+                first_name=raw_user.get('first_name'),
+                last_name=raw_user.get('last_name'),
+                icon=raw_user.get('photo_50')
+            ))
+
+        return list_of_user_info
+
+    def get_groups_list_info(self, groups_ids_list: List[int]) -> List[GroupInfo]:
         """
-        Метод, принимающий словарь с данными о пользователе и кортеж с количествами
-        ссылок, которые необходимо получить для каждой категории,
-        и возвращающий словарь с именами и ссылками на друзей, аккаунты и группы,
-        на которые подписан пользователь('friends', 'users', 'groups' соответственно)
+        Метод, возвращающий список данных о нескольких сообществах VK
 
         Parameters
         ----------
-        user_data: UserInfo
-            Данные об аккаунте VK
-        count: Tuple[int]
-            Ограничители количества ссылок
+        groups_ids_list: List[int]
+            Список ID сообществ VK
 
         Returns
         -------
-        Dict[str, List[List[str]]]
-            Словарь со списками ссылок на друзей и подписки
+        List[GroupInfo]
+            Список с объектами данных о сообществах
 
         """
-        friends, users, groups = [], [], []
+        raw = self.__vk.groups.getById(group_ids=groups_ids_list)
+        list_of_group_info = []
 
-        if user_data['friends'] is not None:
-            for elem in user_data['friends'][:count[0]]:
-                d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
-                friends.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
+        for group in raw:
+            list_of_group_info.append(GroupInfo(
+                id=group.get('id'),
+                name=group.get('name'),
+                link=f'https://vk.com/{group['screen_name']}' if 'screen_name' in group.keys() else None,
+                photo=group.get('photo_50')
+            ))
 
-        if user_data['subscriptions']['users'] is not None:
-            for elem in user_data['subscriptions']['users'][:count[1]]:
-                d = self.__vk.users.get(user_id=elem, fields='first_name, last_name')[0]
-                users.append([d['first_name'], d['last_name'], f'https://vk.com/id{elem}'])
-
-        if user_data['subscriptions']['groups'] is not None:
-            for elem in user_data['subscriptions']['groups'][:count[2]]:
-                d = self.__vk.groups.getById(group_id=elem, fields='name, screen_name')[0]
-                groups.append([d['name'], f'https://vk.com/{d["screen_name"]}'])
-
-        return {
-            'friends': friends,
-            'users': users,
-            'groups': groups
-        }
+        return list_of_group_info
 
     def get_activity(self, user_data: UserInfo, count: Tuple[int] = (5, 5, 5), time_limit: int = 2629743,
-                     times: bool = True) -> List[str] | List[Tuple[str]] | None:
+                     times: bool = True) -> List[str] | List[Tuple[str, str]]:
         """
         Метод, принимающих словарь с данными о пользователе и
         возвращающий список с датами и временами публикаций постов
@@ -419,16 +499,14 @@ class Vk:
             if user_data['post_dates'] is not None:
                 return self.convert_time(sorted(list(result) + user_data['post_dates']))
             return list(result)
+
         try:
             posts = self.__vk.wall.get(owner_id=user_data['id'], count=100)
 
             return list(result) + [(post['text'],
                                     f'https://vk.com/wall{user_data["id"]}_{post["id"]}') for post in posts['items']]
-
         except ApiError:
-            pass
-
-        return None
+            return
 
     def check_toxicity(self, user_data: UserInfo) -> List[Optional[str]]:
         """
@@ -454,40 +532,56 @@ class Vk:
         Метод, принимающий кортеж ссылок на пользователей и возвращающий
         List[UserInfo] - список информации об общих друзьях (UserInfo) для переданных ссылок.
         В случае ошибки при получении информации о друзьях для одного из пользователей,
-        возвращает None (если профиль скрыт).
+        возвращает None (если профиль скрыт)
 
-        :param links: Tuple[str]
-        :return: List[UserInfo] | None
+        Parameters
+        ----------
+        links: Tuple[str] | str
+            Ссылки на пользователей
+
+        Returns
+        -------
+        List[UserInfo] | None
+            Список объектов данных о пользовтаелях
+
         """
         _ids = [self.get_id_from_link(link) for link in links]
         _friends_sets = []
+
         for _id in _ids:
             try:
                 friends = set(self.__vk.friends.get(user_id=_id, count=20)["items"])
                 _friends_sets.append(friends)
-            except Exception as e:
-                # print(f"Ошибка при получении списка друзей для пользователя с ID {_id}: {e}")
+            except Exception:
+                return
 
-                return None
         mutual_friends = set.intersection(*_friends_sets)
         return self.get_users_list_info(list(mutual_friends))
 
-    def get_common_connections(
-            self, link: str
-    ) -> List[Tuple[UserInfo, Optional[List[UserInfo]]]]:
+    def get_common_connections(self, link: str) -> List[Tuple[UserInfo, Optional[List[UserInfo]]]]:
         """
         метод, принимающий ссылку на пользователя
         и возвращий список кортежей, где каждый кортеж содержит
         информацию о друге пользователя и список их общих друзей с переданным пользователем.
 
-        :param link: str
-        return: List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None
+        Parameters
+        ----------
+        link: str
+            Ссылка на аккаунт
+
+        Returns
+        -------
+        List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None
+            Список кортежей с информацией о связях между аккаунтами
+
         """
         _id = self.get_id_from_link(link)
         _friends = self.__vk.friends.get(user_id=_id, count=20)["items"]
         connections = []
+
         for friend in self.get_users_list_info(_friends):
             connections.append(
                 (friend, self.get_mutual_friends(link, str(friend.get("id"))))
             )
+
         return connections
