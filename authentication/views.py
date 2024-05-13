@@ -23,7 +23,6 @@ def auth_view(request):
     -------
     HttpResponse
         Страница регистрации
-
     """
     user_form = UserForm()
 
@@ -65,7 +64,6 @@ def login_view(request):
     -------
     HttpResponse
         Страница входа в систему
-
     """
     login_form = LoginForm()
 

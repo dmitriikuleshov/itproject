@@ -24,7 +24,6 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     -------
     HttpResponse | HttpResponseRedirect
         Страница с информацией об аккаунте или перенаправление на главную
-
     """
     if request.method == 'GET':
         link = request.GET.get('link')

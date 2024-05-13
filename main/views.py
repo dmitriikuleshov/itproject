@@ -19,7 +19,6 @@ def index_view(request):
     -------
     HttpResponse
         Главная страница сайта
-
     """
     login = ''
     if 'login' in request.COOKIES:
@@ -45,7 +44,6 @@ def logout_view(request):
     -------
     HttpResponseRedirect
         Перенаправление на главную страницу
-
     """
     response = redirect('/')
     response.delete_cookie('login')

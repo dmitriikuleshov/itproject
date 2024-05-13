@@ -39,20 +39,20 @@ class Visualization:
 
         self.mutual_graph.add_node(n_id=-1,
                                    label=f'{self.user_info["first_name"]} {self.user_info["last_name"]}',
-                                   shape="circularImage",
-                                   image=self.user_info["icon"], font={'size': 10}, size=25)
+                                   shape='circularImage',
+                                   image=self.user_info['icon'], font={'size': 10}, size=25)
 
         cur_id = 0
         id_dict: dict = dict()
         for friend_info in self.vk_mutual_friends_info:
             self.mutual_graph.add_node(n_id=cur_id,
-                                       label=f'{friend_info[0].get("first_name")} {friend_info[0].get("last_name")}',
-                                       shape="circularImage",
-                                       image=friend_info[0].get("icon"),
-                                       font={"size": 10},
+                                       label=f'{friend_info[0].get('first_name')} {friend_info[0].get('last_name')}',
+                                       shape='circularImage',
+                                       image=friend_info[0].get('icon'),
+                                       font={'size': 10},
                                        size=15)
             friend_id = deepcopy(cur_id)
-            id_dict[friend_info[0].get("id")] = friend_id
+            id_dict[friend_info[0].get('id')] = friend_id
             self.mutual_graph.add_edge(-1, cur_id)
             cur_id += 1
 
@@ -60,8 +60,8 @@ class Visualization:
             if friend_info[1] is not None:
                 for friend_friend in friend_info[1]:
                     self.mutual_graph.add_edge(
-                        id_dict[friend_friend.get("id")],
-                        id_dict[friend_info[0].get("id")]
+                        id_dict[friend_friend.get('id')],
+                        id_dict[friend_info[0].get('id')]
                     )
 
         # saving graph
@@ -76,7 +76,7 @@ class Visualization:
         Union[List[str], None]
             Список названий треков или None, если музыка отсутствует.
         """
-        music = self.user_info["music"]
+        music = self.user_info['music']
         print(music)
 
         if music is not None and len(music) > 3:
@@ -96,10 +96,10 @@ class Visualization:
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
             toxicity_coeff = self.get_toxicity_coefficient()
-            all_posts = self.user_info.get("post_dates")
+            all_posts = self.user_info.get('post_dates')
             return toxicity_coeff, all_posts, toxic_posts
         except TypeError:
-            return "У пользователя нет постов или он ограничил доступ к своим записям", [], []
+            return 'У пользователя нет постов или он ограничил доступ к своим записям', [], []
 
     def get_toxicity_coefficient(self) -> str:
         """
@@ -112,7 +112,7 @@ class Visualization:
         """
         all_posts = self.vk.get_activity(self.user_info, times=True)
         if all_posts is None or len(all_posts) == 0:
-            return "У пользователя нет постов или он ограничил доступ к своим записям"
+            return 'У пользователя нет постов или он ограничил доступ к своим записям'
         return str(round((len(self.vk.check_toxicity(self.user_info)) /
                           len(all_posts)), 2))
 
@@ -125,8 +125,8 @@ class Visualization:
         List[UserInfo]
             Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь.
         """
-        subscriptions = self.user_info.get("subscriptions")
-        user_subscriptions = subscriptions.get("users")
+        subscriptions = self.user_info.get('subscriptions')
+        user_subscriptions = subscriptions.get('users')
         if user_subscriptions is not None:
             if len(user_subscriptions) > 5:
                 user_subscriptions = user_subscriptions[:5]
@@ -142,8 +142,8 @@ class Visualization:
         List[GroupInfo]
             Список объектов с информацией о группах, на которые подписан исследуемый пользователь.
         """
-        subscriptions = self.user_info.get("subscriptions")
-        group_subscriptions = subscriptions.get("groups")
+        subscriptions = self.user_info.get('subscriptions')
+        group_subscriptions = subscriptions.get('groups')
         if group_subscriptions is not None:
             if len(group_subscriptions) > 5:
                 group_subscriptions = group_subscriptions[:5]
@@ -196,7 +196,7 @@ class Visualization:
 
         # Задание заголовка графика
         fig.update_layout(
-            title_text="User Posts Over Time with Range Slider"
+            title_text='User Posts Over Time with Range Slider'
         )
 
         # Добавление ползунка выбора диапазона
@@ -204,17 +204,17 @@ class Visualization:
             xaxis=dict(
                 rangeselector=dict(
                     buttons=list([
-                        dict(count=1, label="1m", step="month", stepmode="backward"),
-                        dict(count=6, label="6m", step="month", stepmode="backward"),
-                        dict(count=1, label="YTD", step="year", stepmode="todate"),
-                        dict(count=1, label="1y", step="year", stepmode="backward"),
-                        dict(step="all")
+                        dict(count=1, label='1m', step='month', stepmode='backward'),
+                        dict(count=6, label='6m', step='month', stepmode='backward'),
+                        dict(count=1, label='YTD', step='year', stepmode='todate'),
+                        dict(count=1, label='1y', step='year', stepmode='backward'),
+                        dict(step='all')
                     ])
                 ),
                 rangeslider=dict(
                     visible=True
                 ),
-                type="date"
+                type='date'
             )
         )
 
