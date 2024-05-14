@@ -32,7 +32,6 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
         try:
             vk_friends_info = vk.get_common_connections(link)
             visualization = Visualization(link)
-            # visualization.get_toxicity()
             visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
 
             create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
@@ -54,6 +53,7 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
             return response
 
         except (TypeError, IndexError):
-            return render(request, 'vkapi/user-info.html', {'error': True})
+            return render(request, 'main/auth-index.html', {'error': True,
+                                                            'login': request.COOKIES['login']})
     else:
         return redirect('/')

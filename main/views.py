@@ -1,11 +1,11 @@
 """Обработка страниц приложения main"""
 
-from django.shortcuts import render, redirect
-
+from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest
 from .models import VkAccount
 
 
-def index_view(request):
+def index_view(request: HttpRequest) -> HttpResponse:
     """
     Высылка главной страницы, проверка,
     аутентифицирован ли пользователь, с помощью cookie
@@ -14,6 +14,8 @@ def index_view(request):
     ----------
     request: HttpRequest
         Объект HTTP-запроса
+    error: bool
+        Флаг, отвечающий за вывод сообщения об ошибке
 
     Returns
     -------
@@ -30,7 +32,7 @@ def index_view(request):
                   {'login': login, 'links': VkAccount.objects.filter(creator=login)})
 
 
-def logout_view(request):
+def logout_view(request: HttpRequest) -> HttpResponseRedirect:
     """
     Выход из учётной записи путём
     удаления cookie.
