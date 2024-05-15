@@ -19,6 +19,9 @@ class Visualization:
         link : str
             Ссылка на профиль пользователя во ВКонтакте.
         """
+        if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
+            open('vkapi/templates/vkapi/friends-graph.html', 'w').close()
+
         self.vk = Vk(token=os.environ['VK_TOKEN'])
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
