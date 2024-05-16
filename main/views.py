@@ -27,7 +27,7 @@ def index_view(request: HttpRequest) -> HttpResponse:
         login = request.COOKIES['login']
 
     if not login:
-        return render(request, 'main/index.html')
+        return render(request, 'main/index.html', {'theme': request.COOKIES['theme']})
     return render(request, 'main/auth-index.html',
                   {'login': login, 'links': VkAccount.objects.filter(creator=login)})
 
@@ -49,4 +49,29 @@ def logout_view(request: HttpRequest) -> HttpResponseRedirect:
     """
     response = redirect('/')
     response.delete_cookie('login')
+    return response
+
+
+def change_theme(request: HttpRequest) -> HttpResponseRedirect:
+    """
+    Установка темы страницы с помощью cookie
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponseRedirect
+        Перенаправление на главную страницу
+    """
+    response = redirect('/')
+    if 'theme' not in request.COOKIES:
+        request.COOKIES['theme'] = 'light'
+    if request.COOKIES['theme'] == 'dark':
+        response.set_cookie('theme', 'light')
+    elif request.COOKIES['theme'] == 'light':
+        response.set_cookie('theme', 'dark')
+
     return response

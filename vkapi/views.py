@@ -1,12 +1,11 @@
+
 """Обработка страниц приложения vkapi"""
+import shutil
 
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
-import os
 
-from .vk_tools import Vk
 from main.models import VkAccount
-from .graph_creator import create_mutual_friends_graph
 from .visualization import Visualization
 
 
@@ -27,15 +26,12 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     """
     if request.method == 'GET':
         link = request.GET.get('link')
-        vk = Vk(token=os.environ['VK_TOKEN'])
 
         try:
-            vk_friends_info = vk.get_common_connections(link)
             visualization = Visualization(link)
             visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
 
-            create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html',
-                                        visualization.user_info, vk_friends_info)
+            visualization.create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html')
 
             context = {'first_name': visualization.user_info['first_name'],
                        'last_name': visualization.user_info['last_name'],
