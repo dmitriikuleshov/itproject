@@ -14,22 +14,35 @@ def index_view(request: HttpRequest) -> HttpResponse:
     ----------
     request: HttpRequest
         Объект HTTP-запроса
-    error: bool
-        Флаг, отвечающий за вывод сообщения об ошибке
 
     Returns
     -------
     HttpResponse
         Главная страница сайта
+
     """
+    if 'theme' not in request.COOKIES:
+        request.COOKIES['theme'] = 'light'
+
     login = ''
     if 'login' in request.COOKIES:
         login = request.COOKIES['login']
 
     if not login:
-        return render(request, 'main/index.html', {'theme': request.COOKIES['theme']})
-    return render(request, 'main/auth-index.html',
-                  {'login': login, 'links': VkAccount.objects.filter(creator=login)})
+        return render(
+            request,
+            'main/index.html',
+            {'theme': request.COOKIES['theme']}
+        )
+    return render(
+        request,
+        'main/auth-index.html',
+        {
+            'login': login,
+            'links': VkAccount.objects.filter(creator=login),
+            'theme': request.COOKIES['theme']
+        }
+    )
 
 
 def logout_view(request: HttpRequest) -> HttpResponseRedirect:
@@ -46,6 +59,7 @@ def logout_view(request: HttpRequest) -> HttpResponseRedirect:
     -------
     HttpResponseRedirect
         Перенаправление на главную страницу
+
     """
     response = redirect('/')
     response.delete_cookie('login')
@@ -65,8 +79,10 @@ def change_theme(request: HttpRequest) -> HttpResponseRedirect:
     -------
     HttpResponseRedirect
         Перенаправление на главную страницу
+
     """
     response = redirect('/')
+
     if 'theme' not in request.COOKIES:
         request.COOKIES['theme'] = 'light'
     if request.COOKIES['theme'] == 'dark':

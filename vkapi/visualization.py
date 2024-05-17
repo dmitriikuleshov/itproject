@@ -18,6 +18,7 @@ class Visualization:
         ----------
         link : str
             Ссылка на профиль пользователя во ВКонтакте.
+
         """
         if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
             open('vkapi/templates/vkapi/friends-graph.html', 'w').close()
@@ -37,6 +38,7 @@ class Visualization:
         ----------
         link_to_save_graph : str
             Ссылка, по которой будет сохранен граф.
+
         """
         self.vk_mutual_friends_info = self.vk.get_common_connections(self.link)
 
@@ -78,9 +80,9 @@ class Visualization:
         -------
         Union[List[str], None]
             Список названий треков или None, если музыка отсутствует.
+
         """
         music = self.user_info['music']
-        print(music)
 
         if music is not None and len(music) > 3:
             return music[:3]
@@ -95,6 +97,7 @@ class Visualization:
         Tuple[str, List[str]]
             Кортеж, содержащий коэффициент токсичности в виде строки и список токсичных постов.
             Если у пользователя нет постов или ограничен доступ, возвращается соответствующее сообщение и пустой список.
+
         """
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
@@ -112,6 +115,7 @@ class Visualization:
         -------
         str
             Строка с коэффициентом токсичности или сообщением об отсутствии доступных постов.
+
         """
         all_posts = self.vk.get_activity(self.user_info, times=True)
         if all_posts is None or len(all_posts) == 0:
@@ -127,6 +131,7 @@ class Visualization:
         -------
         List[UserInfo]
             Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь.
+
         """
         subscriptions = self.user_info.get('subscriptions')
         user_subscriptions = subscriptions.get('users')
@@ -144,6 +149,7 @@ class Visualization:
         -------
         List[GroupInfo]
             Список объектов с информацией о группах, на которые подписан исследуемый пользователь.
+
         """
         subscriptions = self.user_info.get('subscriptions')
         group_subscriptions = subscriptions.get('groups')
@@ -161,6 +167,7 @@ class Visualization:
         ----------
         link_to_save_graph : str
             Ссылка, по которой будет сохранен HTML-файл с графиком.
+
         """
         # Загрузка данных активности пользователя
         post_dates_raw = self.vk.get_activity(self.user_info, times=True)

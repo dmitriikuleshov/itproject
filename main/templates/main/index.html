@@ -13,9 +13,9 @@
     <meta content="width=device-width, initial-scale=1" name="viewport" />
     <meta content="Webflow" name="generator" />
     <link href="{% if theme == 'dark' %}
-                    {% static 'main/index_dark.css' %}
+                    {% static 'main/index-dark.css' %}
                 {% else %}
-                    {% static 'main/index_light.css' %}
+                    {% static 'main/index-light.css' %}
                 {% endif %}" rel="stylesheet" type="text/css" />
     <script type="text/javascript">
       !(function (o, c) {
@@ -90,7 +90,7 @@
             <div class="actions">
               <a
                 data-w-id="c35d30b6-a81e-aa0b-89c3-2aa4496b7101"
-                href="{% url 'authentication' %}"
+                href="{% url 'registration' %}"
                 target="_blank"
                 class="button-2"
               >

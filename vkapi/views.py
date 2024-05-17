@@ -23,6 +23,7 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     -------
     HttpResponse | HttpResponseRedirect
         Страница с информацией об аккаунте или перенаправление на главную
+
     """
     if request.method == 'GET':
         link = request.GET.get('link')
@@ -30,18 +31,23 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
         try:
             visualization = Visualization(link)
             visualization.create_activity_graph('vkapi/templates/vkapi/activity-graph.html')
-
             visualization.create_mutual_friends_graph('vkapi/templates/vkapi/mutual-friends-graph.html')
 
-            context = {'first_name': visualization.user_info['first_name'],
-                       'last_name': visualization.user_info['last_name'],
-                       'birthday': visualization.user_info['birthday'],
-                       'city': visualization.user_info['city'],
-                       'user_subscriptions': visualization.get_user_subscriptions(),
-                       'group_subscriptions': visualization.get_group_subscriptions(),
-                       'toxicity': visualization.get_toxicity()}
-            response = render(request, 'vkapi/user-info.html',
-                              context=context)
+            context = {
+                'first_name': visualization.user_info['first_name'],
+                'last_name': visualization.user_info['last_name'],
+                'birthday': visualization.user_info['birthday'],
+                'city': visualization.user_info['city'],
+                'user_subscriptions': visualization.get_user_subscriptions(),
+                'group_subscriptions': visualization.get_group_subscriptions(),
+                'toxicity': visualization.get_toxicity()
+            }
+
+            response = render(
+                request,
+                'vkapi/user-info.html',
+                context
+            )
 
             if not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists():
                 VkAccount(link=link, creator=request.COOKIES['login']).save()
@@ -49,7 +55,13 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
             return response
 
         except (TypeError, IndexError):
-            return render(request, 'main/auth-index.html', {'error': True,
-                                                            'login': request.COOKIES['login']})
+            return render(
+                request,
+                'main/auth-index.html',
+                {
+                    'error': True,
+                    'login': request.COOKIES['login']
+                }
+            )
     else:
         return redirect('/')
