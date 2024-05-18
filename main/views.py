@@ -39,7 +39,10 @@ def index_view(request: HttpRequest) -> HttpResponse:
         'main/auth-index.html',
         {
             'login': login,
-            'links': VkAccount.objects.filter(creator=login),
+            'links': [{
+                'name': str(elem).split('/')[-1],
+                'link': elem
+            } for elem in VkAccount.objects.filter(creator=login)],
             'theme': request.COOKIES['theme']
         }
     )

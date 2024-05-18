@@ -2833,3 +2833,27 @@ body {
     padding-right: 0;
   }
 }
+
+.links-block {
+    background-image: linear-gradient(90deg, #38eafe, #6ee4fe 6%, #8ddefd 13%, #a3d8fd 19%, #b5d2fc 25%, #c3cdfc 31%, #cfc8fc 38%, #d9c3fb 44%, #e2bffb 50%, #e9bbfb 56%, #efb7fb 63%, #f4b4fa 69%, #f8b2fa 75%, #fbb0fa 81%, #fdaefa 88%, #ffadfa 94%, #ffadfa);
+    padding-left: 260px;
+    text-align: left;
+    width: 100%;
+}
+.link {
+    transition: 1s;
+    font-family: "Lucida Console", serif;
+    min-width: 20%;
+    padding: 5px;
+    background: #ffdede;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #1f1f1f;
+    font-size: 130%;
+    margin: 5px;
+    box-shadow: 3px 3px 3px 3px #ffdede;
+}
+.link:hover {
+    background: #38EAFEFF;
+    box-shadow: 3px 3px 3px 3px #38EAFEFF;
+}

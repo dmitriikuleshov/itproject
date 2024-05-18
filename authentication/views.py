@@ -85,6 +85,9 @@ def login_view(request: HttpRequest) -> HttpResponse:
         Страница входа в систему
 
     """
+    if 'theme' not in request.COOKIES:
+        request.COOKIES['theme'] = 'light'
+
     login_form = LoginForm()
 
     if request.method == 'POST':
@@ -103,9 +106,6 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 error = 'Пользователь не найден.'
         else:
             error = 'Ошибка! Поля заполнены некорректно.'
-
-        if 'theme' not in request.COOKIES:
-            request.COOKIES['theme'] = 'light'
 
         return render(
             request,
