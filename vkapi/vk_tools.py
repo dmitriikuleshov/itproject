@@ -3,16 +3,20 @@
 класс, отвечающий за доступ к VK API
 """
 
+from json import dump, load
+from random import shuffle
 import re
+
 import vk_api
 
 from vk_api.exceptions import ApiError
 from .toxicity_check import check_obscene_vocabulary
+from gigachat_tools import check_acquaintances
 
 from datetime import datetime
 from time import time
 
-from typing import List, TypedDict, Optional, Tuple
+from typing import List, TypedDict, Optional, Tuple, Dict
 
 
 class University(TypedDict, total=False):
@@ -283,7 +287,7 @@ class Vk:
                                                             'relatives, counters, photo_50')[0]
         relatives = []
         if 'relatives' in raw.keys():
-            relatives = [rel['name'] for rel in raw['relatives']]
+            relatives = [rel.get('id') for rel in raw['relatives']]
 
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
@@ -596,3 +600,97 @@ class Vk:
             )
 
         return connections
+
+    @staticmethod
+    def analyse_acquaintances(user_info: UserInfo, count: int = 10, country: bool = True,
+                              city: bool = True) -> List[Dict[str, str]]:
+        """
+        Метод, принимающий данные о пользователе, и возвращающий
+        список данных пользователей, рекомендуемых GigaChat для знакомства
+
+        Parameters
+        ----------
+        user_info: UserInfo
+            Данные о пользователе
+        count: int
+            Максимальное число пользователей в возвращаемом списке
+        country: bool
+            Нужно ли учитывать совпадение страны пользователя и рекомендуемого аккаунта?
+        city: bool
+            Нужно ли учитывать совпадение города пользователя и рекомендуемого аккаунта?
+
+        Returns
+        -------
+        List[Dict[str, str]]
+            Список словарей с короткой информацией о рекомендуемом аккаунте
+
+        """
+        with open('data.json') as f:
+            data = load(f)
+
+        filter_data, result_data = [], []
+
+        if country or city:
+            for user in data:
+                if (not country or (user_info['country'] is not None and
+                                    user_info['country'].lower() == user['country']['title'].lower())
+                        and (not city or (user_info['city'] is not None and
+                                          user_info['city'].lower() == user['city']['title'].lower()))):
+                    filter_data.append(user)
+
+        check = set()
+        shuffle(filter_data)
+
+        for user in filter_data:
+            if user_info['interests'] is not None:
+                condition = check_acquaintances(
+                    first_user_interest=user_info['interests'],
+                    second_user_interest=user['interests']
+                ) and user['id'] != user_info['id'] and user['id'] not in check
+            else:
+                condition = (user_info['city'] is not None and
+                             user_info['city'].lower() == user['city']['title'].lower() and
+                             user['id'] != user_info['id'] and user['id'] not in check)
+
+            if condition:
+                result_data.append({
+                    'first_name': user.get('first_name'),
+                    'last_name': user.get('last_name'),
+                    'interests': user.get('interests'),
+                    'link': f'https://vk.com/id{user["id"]}'
+                })
+                check.add(user['id'])
+                if len(result_data) == count:
+                    break
+
+        return result_data
+
+    def __dump_big_users_data(self, k: int) -> None:
+        """
+        Служебный метод для обновления базы данных аккаунтов вк
+        для последующего анализа на знакомства. За раз
+        записывает данный аккаунтов с ID от k * 1000 до k * 1000 + 5000
+
+        Parameters
+        ----------
+        k: int
+            Параметр границ рассматриваемых ID
+
+        """
+        ind = [str([j for j in range(j, j + 1000)])[1:-1] for j in range(10000 + k * 1000, 15000 + k * 1000, 1000)]
+        res_code = ''.join([f'var {"a" * (i + 1)} = API.users.get({{"user_ids":"{ind[i]}", '
+                            f'"fields": "bdate, city, country, interests"}});' for i in range(len(ind))])
+        rs_vars = ''.join([f'{"a" * (i + 1)}+' for i in range(len(ind))])[:-1]
+
+        data = self.__vk.execute(code=f'{res_code}return {rs_vars};')
+
+        with open('data.json') as f:
+            _json = load(f)
+
+        for el in data:
+            if 'city' in el.keys() and 'bdate' in el.keys() and 'country' in el.keys() and 'interests' in el.keys():
+                if el['interests']:
+                    _json.append(el)
+
+        with open('data.json', 'w') as f:
+            dump(_json, f, indent=4)
