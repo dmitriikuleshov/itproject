@@ -1,13 +1,10 @@
 # VkAnalyser
+## *[Ссылка на доску Канбан](https://luminous-epoch-ab9.notion.site/34f0826e8fbf44a9bea7956946d513f3?v=406f7bea22c641e9ba46695d09633b9a)*
+## *Работа проекта:*
 
------------------------
-### *[Ссылка на доску Канбан](https://luminous-epoch-ab9.notion.site/34f0826e8fbf44a9bea7956946d513f3?v=406f7bea22c641e9ba46695d09633b9a)*
------------------------
-### *Работа проекта:*
 
------------------------
 
-### *Структура Django-проекта*:
+## *Структура Django-проекта*:
 
 - ***[authentication](authentication)*** Приложение, отвечающее за регистрацию, 
 аутентификацию и сохранение учётной информации о пользователях в базе данных.
@@ -97,8 +94,8 @@ API-методов `Users.Get` и `Wall.Get`.
 
         - `user_info_view()` Получение ссылки на профиль, переданной с главной страницы и вывод нужной информации.
 
-------------------
-### *Список источников информации*:
+
+## *Список источников информации*:
 - https://habr.com/ru/articles/221251/
 - https://dev.vk.com/ru/method
 - https://www.kaggle.com/code/ludovicocuoghi/twitter-sentiment-analysis-with-bert-vs-roberta
