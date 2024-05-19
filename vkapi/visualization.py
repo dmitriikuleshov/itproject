@@ -23,7 +23,7 @@ class Visualization:
         if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
             open('vkapi/templates/vkapi/friends-graph.html', 'w').close()
 
-        self.vk = Vk(token='vk1.a._jPLHq2gfGMQ71O8xJt_TdopUo7vYIsnXzEDeZf_mVwFbZMdNdzxv2eHc8x1LOEgzp2Fp4UbvrJaiHKx_d65ckFFeKlo17oKeqve8o0iHmdyuIzvFfYq95xG_4yW4T9hD7sd2GyX7D4Bt0bB8qkk-73jNFrxgz5nj4Q2SWNY-fkl25YxkXPTYNgk6CrxvRnoOF-BrvwvHYNwjjhK7OogSw')
+        self.vk = Vk(token=os.environ['VK_TOKEN'])
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
         self.vk_mutual_friends_info = None
@@ -46,6 +46,10 @@ class Visualization:
                                    label=f'{self.user_info["first_name"]} {self.user_info["last_name"]}',
                                    shape='circularImage',
                                    image=self.user_info['icon'], font={'size': 10}, size=25)
+
+        if self.vk_mutual_friends_info is None:
+            self.mutual_graph.save_graph(link_to_save_graph)
+            return
 
         cur_id = 0
         id_dict: dict = dict()

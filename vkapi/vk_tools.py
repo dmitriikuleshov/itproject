@@ -33,7 +33,7 @@ class University(TypedDict, total=False):
     form: Optional[str]
         Форма образование (очная/заочная)
     graduation: Optional[int]
-        Учёная степень
+        Год выпуска
 
     """
 
@@ -567,13 +567,13 @@ class Vk:
             try:
                 friends = set(self.__vk.friends.get(user_id=_id, count=20)['items'])
                 _friends_sets.append(friends)
-            except Exception:
+            except ApiError:
                 return
 
         mutual_friends = set.intersection(*_friends_sets)
         return self.get_users_list_info(list(mutual_friends))
 
-    def get_common_connections(self, link: str) -> List[Tuple[UserInfo, Optional[List[UserInfo]]]]:
+    def get_common_connections(self, link: str) -> List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None:
         """
         Метод, принимающий ссылку на пользователя
         и возвращающий список кортежей, где каждый кортеж содержит
@@ -590,16 +590,19 @@ class Vk:
             Список кортежей с информацией о связях между аккаунтами
 
         """
-        _id = self.get_id_from_link(link)
-        _friends = self.__vk.friends.get(user_id=_id, count=20)['items']
-        connections = []
+        try:
+            _id = self.get_id_from_link(link)
+            _friends = self.__vk.friends.get(user_id=_id, count=20)['items']
+            connections = []
 
-        for friend in self.get_users_list_info(_friends):
-            connections.append(
-                (friend, self.get_mutual_friends(link, str(friend.get('id'))))
-            )
+            for friend in self.get_users_list_info(_friends):
+                connections.append(
+                    (friend, self.get_mutual_friends(link, str(friend.get('id'))))
+                )
 
-        return connections
+            return connections
+        except ApiError:
+            return
 
     @staticmethod
     def analyse_acquaintances(user_info: UserInfo, count: int = 10, country: bool = True,

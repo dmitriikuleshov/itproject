@@ -28,7 +28,7 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     if 'theme' not in request.COOKIES:
         request.COOKIES['theme'] = 'light'
 
-    vk = Vk(token='vk1.a._jPLHq2gfGMQ71O8xJt_TdopUo7vYIsnXzEDeZf_mVwFbZMdNdzxv2eHc8x1LOEgzp2Fp4UbvrJaiHKx_d65ckFFeKlo17oKeqve8o0iHmdyuIzvFfYq95xG_4yW4T9hD7sd2GyX7D4Bt0bB8qkk-73jNFrxgz5nj4Q2SWNY-fkl25YxkXPTYNgk6CrxvRnoOF-BrvwvHYNwjjhK7OogSw')
+    vk = Vk(token=os.environ['VK_TOKEN'])
     link = request.GET.get('link')
 
     try:
@@ -149,3 +149,25 @@ def subscriptions_view(request: HttpRequest) -> HttpResponse:
         'user_subscriptions': visualization.get_user_subscriptions(),
         'group_subscriptions': visualization.get_group_subscriptions(),
     })
+
+
+def toxicity_view(request: HttpRequest) -> HttpResponse:
+    """
+    Возвращает фрейм с информацией о токсичности пользователя
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse | HttpResponseRedirect
+        Фрейм с данными о токсичности пользователя
+
+    """
+    visualization = Visualization(request.GET.get('link'))
+    return render(request, 'vkapi/toxicity.html', {
+        'toxicity': visualization.get_toxicity()
+    })
+
