@@ -1,6 +1,6 @@
 # VkAnalyser
 ## *[Ссылка на доску Канбан](https://luminous-epoch-ab9.notion.site/34f0826e8fbf44a9bea7956946d513f3?v=406f7bea22c641e9ba46695d09633b9a)*
-## *Работа проекта:*
+## *Работа веб-платформы:*
 
 
 ## *Структура Django-проекта*:
