@@ -32,38 +32,50 @@
     }
 
     .name {
-        font-size: 18px;
+        font-size: 15px;
         font-weight: bold;
         color: #495057;
     }
+    body {
+        padding-left: 10px;
+    }
 </style>
 </head>
-<body>
+<body style="background: #dcdcdc">
 
-<div class="container py-4">
-    <h2 class="mb-3">Подписки на пользователей</h2>
-    <div class="list-group">
-        {% for subscription in user_subscriptions %}
-        <div class="list-group-item subscription-item">
-            <div class="avatar">
-                <img src="{{ subscription.icon }}" alt="Avatar">
-            </div>
-            <div class="name">{{ subscription.first_name }} {{ subscription.last_name }}</div>
-        </div>
-        {% endfor %}
-    </div>
+<div class="container py-4" style="margin: 7px; padding: 7px">
+    {% if not user_subscriptions %}
+        <h2 class="mb-3" style="font-size: 17px">Подписки на пользователей не найдены.</h2>
+    {% else %}
+        <h2 class="mb-3" style="font-size: 17px">Подписки на пользователей</h2>
+        <div class="list-group">
 
-    <h2 class="mt-5 mb-3">Подписки на сообщества</h2>
-    <div class="list-group">
-        {% for subscription in group_subscriptions %}
-        <div class="list-group-item subscription-item">
-            <div class="avatar">
-                <img src="{{ subscription.icon }}" alt="Community Avatar">
+
+            {% for subscription in user_subscriptions %}
+            <div class="list-group-item subscription-item">
+                <div class="avatar">
+                    <img src="{{ subscription.icon }}" alt="Avatar">
+                </div>
+                <a class="name" target="_parent" href="https://vk.com/id{{ subscription.id }}">{{ subscription.first_name }} {{ subscription.last_name }}</a>
             </div>
-            <div class="name">{{ subscription.name }}</div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
+    {% endif %}
+    {% if not group_subscriptions %}
+        <h2 class="mb-3" style="font-size: 17px">Подписки на сообщества не найдены.</h2>
+    {% else %}
+        <h2 class="mt-5 mb-3" style="font-size: 17px">Подписки на сообщества</h2>
+        <div class="list-group">
+            {% for subscription in group_subscriptions %}
+            <div class="list-group-item subscription-item">
+                <div class="avatar">
+                    <img src="{{ subscription.photo }}" alt="Community Avatar">
+                </div>
+                <a class="name" target="_parent" href="{{ subscription.link }}">>{{ subscription.name }}</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

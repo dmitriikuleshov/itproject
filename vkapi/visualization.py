@@ -27,7 +27,7 @@ class Visualization:
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
         self.vk_mutual_friends_info = None
-        self.mutual_graph = Network(height='750px', width='700px', bgcolor='#222222', font_color='white')
+        self.mutual_graph = Network(height='590px', width='980px', bgcolor='#222222', font_color='white')
         self.activity_graph = None
 
     def create_mutual_friends_graph(self, link_to_save_graph: str) -> None:
@@ -199,6 +199,7 @@ class Visualization:
 
         # Создание временного ряда
         fig = go.Figure()
+        fig.update_layout(width=1350, height=600)
 
         fig.add_trace(
             go.Scatter(x=final_df['Date'], y=final_df['Number of Posts'])
@@ -206,7 +207,7 @@ class Visualization:
 
         # Задание заголовка графика
         fig.update_layout(
-            title_text='User Posts Over Time with Range Slider'
+            title_text='График активности'
         )
 
         # Добавление ползунка выбора диапазона

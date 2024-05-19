@@ -11,7 +11,7 @@ import vk_api
 
 from vk_api.exceptions import ApiError
 from .toxicity_check import check_obscene_vocabulary
-from gigachat_tools import check_acquaintances
+from .gigachat_tools import check_acquaintances
 
 from datetime import datetime
 from time import time
