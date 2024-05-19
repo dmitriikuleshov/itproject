@@ -28,7 +28,7 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     if 'theme' not in request.COOKIES:
         request.COOKIES['theme'] = 'light'
 
-    vk = Vk(token=os.environ['VK_TOKEN'])
+    vk = Vk(token='vk1.a._jPLHq2gfGMQ71O8xJt_TdopUo7vYIsnXzEDeZf_mVwFbZMdNdzxv2eHc8x1LOEgzp2Fp4UbvrJaiHKx_d65ckFFeKlo17oKeqve8o0iHmdyuIzvFfYq95xG_4yW4T9hD7sd2GyX7D4Bt0bB8qkk-73jNFrxgz5nj4Q2SWNY-fkl25YxkXPTYNgk6CrxvRnoOF-BrvwvHYNwjjhK7OogSw')
     link = request.GET.get('link')
 
     try:
@@ -53,7 +53,11 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
             'main/auth-index.html',
             {
                 'error': True,
-                'login': request.COOKIES['login']
+                'login': request.COOKIES['login'],
+                'links': [{
+                    'name': str(elem).split('/')[-1],
+                    'link': elem
+                } for elem in VkAccount.objects.filter(creator=request.COOKIES['login'])]
             }
         )
 

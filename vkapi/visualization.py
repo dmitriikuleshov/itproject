@@ -23,7 +23,7 @@ class Visualization:
         if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
             open('vkapi/templates/vkapi/friends-graph.html', 'w').close()
 
-        self.vk = Vk(token=os.environ['VK_TOKEN'])
+        self.vk = Vk(token='vk1.a._jPLHq2gfGMQ71O8xJt_TdopUo7vYIsnXzEDeZf_mVwFbZMdNdzxv2eHc8x1LOEgzp2Fp4UbvrJaiHKx_d65ckFFeKlo17oKeqve8o0iHmdyuIzvFfYq95xG_4yW4T9hD7sd2GyX7D4Bt0bB8qkk-73jNFrxgz5nj4Q2SWNY-fkl25YxkXPTYNgk6CrxvRnoOF-BrvwvHYNwjjhK7OogSw')
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
         self.vk_mutual_friends_info = None
@@ -199,7 +199,7 @@ class Visualization:
 
         # Создание временного ряда
         fig = go.Figure()
-        fig.update_layout(width=1350, height=600)
+        fig.update_layout(width=1150, height=580)
 
         fig.add_trace(
             go.Scatter(x=final_df['Date'], y=final_df['Number of Posts'])
