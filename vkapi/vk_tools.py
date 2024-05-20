@@ -1,158 +1,18 @@
-"""
-Описание объектов данных об аккаунтах VK, а также
-класс, отвечающий за доступ к VK API
-"""
+"""Класс, отвечающий за доступ к VK API"""
 
+from typing import List, Optional, Tuple, Dict
 from json import dump, load
 from random import shuffle
+from datetime import datetime
+from time import time
 import re
 
 import vk_api
-
 from vk_api.exceptions import ApiError
+
 from .toxicity_check import check_obscene_vocabulary
-from .gigachat_tools import check_acquaintances
-
-from datetime import datetime
-from time import time
-
-from typing import List, TypedDict, Optional, Tuple, Dict
-
-
-class University(TypedDict, total=False):
-    """
-    Словарь с данными об высшем учебном заведении,
-    в котором обучался владелец аккаунта
-
-    Attributes
-    ----------
-    name: Optional[str]
-        Название университета
-    faculty: Optional[str]
-        Название факультета
-    form: Optional[str]
-        Форма образование (очная/заочная)
-    graduation: Optional[int]
-        Год выпуска
-
-    """
-
-    name: Optional[str]
-    faculty: Optional[str]
-    form: Optional[str]
-    graduation: Optional[int]
-
-
-class Subscriptions(TypedDict, total=False):
-    """
-    Словарь со списками подписок аккаунта VK
-    на пользователей и сообщества
-
-    Attributes
-    ----------
-    users: List[int]
-        Список ID пользователей
-    groups: List[int]
-        Список ID сообществ
-
-    """
-
-    users: List[int]
-    groups: List[int]
-
-
-class UserInfo(TypedDict, total=False):
-    """
-    Словарь с основными данными об аккаунте VK
-
-    Attributes
-    ----------
-    id: int
-        Идентификатор пользователя
-    first_name: str
-        Имя пользователя
-    last_name: str
-        Фамилия пользователя
-    birthday: Optional[int]
-        Дата рождения
-    country: Optional[str]
-        Страна проживания
-    city: Optional[str]
-        Город проживания
-    interests: Optional[str]
-        Интересы (из профиля)
-    books: Optional[str]
-        Любимые книги
-    games: Optional[str]
-        Любимые игры
-    movies: Optional[str]
-        Любимые фильмы
-    activities: Optional[str]
-        Увлечения
-    music: Optional[str]
-        Любимая музыка
-    university: Optional[University]
-        Объект данных о высшем образовании
-    relatives: List[str]
-        Список имён родственников
-    friends_count: Optional[int]
-        Количество друзей
-    followers_count: Optional[int]
-        Количество подписчиков
-    friends: List[int]
-        Список идентификаторов друзей
-    subscriptions: Optional[Subscriptions]
-        Список объектов со списками подписок
-    post_dates: List[int]
-        Список дат публикаций постов
-    icon: Optional[str]
-        Ссылка на иконку пользователя
-
-    """
-
-    id: int
-    first_name: str
-    last_name: str
-    birthday: Optional[int]
-    country: Optional[str]
-    city: Optional[str]
-    interests: Optional[str]
-    books: Optional[str]
-    games: Optional[str]
-    movies: Optional[str]
-    activities: Optional[str]
-    music: Optional[str]
-    university: Optional[University]
-    relatives: List[str]
-    friends_count: Optional[int]
-    followers_count: Optional[int]
-    friends: List[int]
-    subscriptions: Optional[Subscriptions]
-    post_dates: List[int]
-    icon: Optional[str]
-
-
-class GroupInfo(TypedDict, total=False):
-    """
-    Словарь с данными о сообществе VK
-
-    Attributes
-    ----------
-    id: int
-        Идентификатор сообщества
-    name: str
-        Название сообщества
-    link: str
-        Ссылка на сообщество
-    photo: str
-        Ссылка на иконку сообщества
-
-    """
-
-    id: int
-    name: str
-    link: str
-    photo: str
+from .gigachat_tools import check_acquaintances, get_written_squeeze
+from .vk_tools_models import UserInfo, University, Subscriptions, GroupInfo
 
 
 class Vk:
@@ -182,6 +42,14 @@ class Vk:
         Получение данных об активности аккаунта
     check_toxicity(user_data)
         Анализ публикация аккаунта на ненормативную лексику
+    get_mutual_friends(*links)
+        Получение информации об общих друзьях нескольких пользователей
+    get_common_connections(link)
+        Получение информации о друзьях пользователя и связях между ними
+    analyse_acquaintances(user_info, count, country, city)
+        Поиск потенциальных знакомств для данного пользователя
+    __dump_big_users_data(k)
+        Генерация локальной базы аккаунтов ВК для анализа на знакомства
 
     """
 
@@ -284,10 +152,7 @@ class Vk:
                                                             'country, city, activities, '
                                                             'books, education, games, '
                                                             'interests, movies, music, personal, '
-                                                            'relatives, counters, photo_50')[0]
-        relatives = []
-        if 'relatives' in raw.keys():
-            relatives = [rel.get('id') for rel in raw['relatives']]
+                                                            'counters, photo_50')[0]
 
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
@@ -324,7 +189,6 @@ class Vk:
             activities=raw.get('activities'),
             music=raw.get('music'),
             university=user_university,
-            relatives=relatives,
             friends_count=raw['counters'].get('friends'),
             followers_count=raw['counters'].get('followers'),
             friends=friends,
@@ -628,39 +492,36 @@ class Vk:
             Список словарей с короткой информацией о рекомендуемом аккаунте
 
         """
-        with open('data.json') as f:
+        with open('vkapi/data.json') as f:
             data = load(f)
 
         filter_data, result_data = [], []
 
         if country or city:
             for user in data:
-                if (not country or (user_info['country'] is not None and
-                                    user_info['country'].lower() == user['country']['title'].lower())
-                        and (not city or (user_info['city'] is not None and
-                                          user_info['city'].lower() == user['city']['title'].lower()))):
+                if ((not country or (user_info['country'] is not None and
+                                     user_info['country'].lower() == user['country']['title'].lower())
+                     and (not city or (user_info['city'] is not None and
+                                       user_info['city'].lower() == user['city']['title'].lower())))) or (
+                        (country and user_info['country'] is None) or (city and user_info['city'] is None)
+                ):
                     filter_data.append(user)
 
         check = set()
         shuffle(filter_data)
+        written_squeeze = get_written_squeeze(user_info)
 
         for user in filter_data:
-            if user_info['interests'] is not None:
-                condition = check_acquaintances(
-                    first_user_interest=user_info['interests'],
+            if check_acquaintances(
+                    first_user_interest=written_squeeze,
                     second_user_interest=user['interests']
-                ) and user['id'] != user_info['id'] and user['id'] not in check
-            else:
-                condition = (user_info['city'] is not None and
-                             user_info['city'].lower() == user['city']['title'].lower() and
-                             user['id'] != user_info['id'] and user['id'] not in check)
-
-            if condition:
+            ) and user['id'] != user_info['id'] and user['id'] not in check:
                 result_data.append({
                     'first_name': user.get('first_name'),
                     'last_name': user.get('last_name'),
                     'interests': user.get('interests'),
-                    'link': f'https://vk.com/id{user["id"]}'
+                    'link': f'https://vk.com/id{user["id"]}',
+                    'icon': user.get('photo_50')
                 })
                 check.add(user['id'])
                 if len(result_data) == count:
@@ -682,7 +543,7 @@ class Vk:
         """
         ind = [str([j for j in range(j, j + 1000)])[1:-1] for j in range(10000 + k * 1000, 15000 + k * 1000, 1000)]
         res_code = ''.join([f'var {"a" * (i + 1)} = API.users.get({{"user_ids":"{ind[i]}", '
-                            f'"fields": "bdate, city, country, interests"}});' for i in range(len(ind))])
+                            f'"fields": "city, country, interests"}});' for i in range(len(ind))])
         rs_vars = ''.join([f'{"a" * (i + 1)}+' for i in range(len(ind))])[:-1]
 
         data = self.__vk.execute(code=f'{res_code}return {rs_vars};')
@@ -691,7 +552,7 @@ class Vk:
             _json = load(f)
 
         for el in data:
-            if 'city' in el.keys() and 'bdate' in el.keys() and 'country' in el.keys() and 'interests' in el.keys():
+            if 'country' in el.keys() and 'interests' in el.keys():
                 if el['interests']:
                     _json.append(el)
 

@@ -2,6 +2,7 @@
 
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
 from django.http import HttpRequest
+
 from .models import VkAccount
 
 
@@ -40,8 +41,8 @@ def index_view(request: HttpRequest) -> HttpResponse:
         {
             'login': login,
             'links': [{
-                'name': str(elem).split('/')[-1],
-                'link': elem
+                'name': f'{elem.first_name} {elem.last_name}',
+                'link': elem.link
             } for elem in VkAccount.objects.filter(creator=login)],
             'theme': request.COOKIES['theme']
         }

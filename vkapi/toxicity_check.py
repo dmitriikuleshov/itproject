@@ -1,7 +1,8 @@
 """Функция анализа текстов на наличие нецензурной лексики"""
 
-from requests import get
 from typing import List, Tuple, Optional
+
+from requests import get
 
 
 def check_obscene_vocabulary(data: List[Tuple[str, str]]) -> List[Optional[str]]:

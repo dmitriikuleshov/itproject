@@ -1,6 +1,7 @@
 """URL-маршруты приложения vkapi"""
 
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -9,5 +10,7 @@ urlpatterns = [
     path('activity', views.activity_view, name='activity'),
     path('subscriptions', views.subscriptions_view, name='subscriptions'),
     path('change-theme', views.change_theme, name='vkapi_change_theme'),
-    path('toxicity', views.toxicity_view, name='toxicity')
+    path('toxicity', views.toxicity_view, name='toxicity'),
+    path('acquaintances', views.acquaintances_view, name='acquaintances'),
+    path('loader', views.loader_view, name='loader')
 ]

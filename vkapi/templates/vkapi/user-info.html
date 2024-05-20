@@ -34,6 +34,9 @@
                           document.getElementById('activity').src = '{% url 'activity' %}?link={{ link }}';
                           document.getElementById('activity').onload = function() {
                               document.getElementById('toxicity').src = '{% url 'toxicity' %}?link={{ link }}';
+                              document.getElementById('toxicity').onload = function () {
+                                  document.getElementById('acquaintances').src = '{% url 'acquaintances' %}?link={{ link }}';
+                              }
                           }
                       }
               }
@@ -44,6 +47,9 @@
     hr {
         margin-top: 10px;
         margin-bottom: 10px;
+    }
+    * {
+        font-family: Tahoma, sans-serif;
     }
   </style>
   </head>
@@ -106,7 +112,7 @@
             {% if info.interests %}
                 <p>Интересы: {{ info.interests }}</p>
             {% endif %}
-            {% if info.ooks %}
+            {% if info.books %}
                 <p>Любимые книги: {{ info.books }}</p>
             {% endif %}
             {% if info.games %}
@@ -141,22 +147,29 @@
             {% if info.friends_count %}
                 <p>Количество друзей: {{ info.friends_count }}</p>
             {% endif %}
+        <hr>
+         <p style="font-size: 130%">Краткое описание пользователя (создано с использованием GigaChat)</p><hr>
+        {{ text }}
         </div>
       <div class="container">
           <p style="font-size: 130%">Подписки пользователя</p><hr>
-          <iframe id="subscriptions" width="97%" height="630px" src=""></iframe>
+          <iframe id="subscriptions" width="97%" height="630px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
           <p style="font-size: 130%">Граф дружеских связей пользователя</p><hr>
-          <iframe id="friends-graph" width="1000px" height="610px" src=""></iframe>
+          <iframe id="friends-graph" width="1000px" height="610px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
           <p style="font-size: 130%">График активности пользователя</p><hr>
-          <iframe id="activity" width="1170px" height="600px" src=""></iframe>
+          <iframe id="activity" width="1170px" height="600px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
           <p style="font-size: 130%">Сведения о токсичности пользователя</p><hr>
-          <iframe id="toxicity" width="470px" height="200px" src=""></iframe>
+          <iframe id="toxicity" width="470px" height="200px" src="{% url 'loader' %}"></iframe>
+      </div>
+      <div class="container">
+          <p style="font-size: 130%">Рекомендации по знакомствам (с использованием GigaChat)</p><hr>
+          <iframe id="acquaintances" width="97%" height="630px" src="{% url 'loader' %}"></iframe>
       </div>
       </center>
     <div style="display: flex" class="preloader">

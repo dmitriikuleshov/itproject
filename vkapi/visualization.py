@@ -1,12 +1,16 @@
-from pyvis.network import Network
-from .vk_tools import Vk, UserInfo, GroupInfo
+"""Класс, отвечающий за визуализацию связанной с анализом аккаунта информации"""
+
 from typing import List, Union, Tuple
-from copy import deepcopy
-import pandas as pd
 from collections import Counter
 from datetime import datetime
-import plotly.graph_objects as go
 import os
+
+from pyvis.network import Network
+from copy import deepcopy
+import pandas as pd
+import plotly.graph_objects as go
+
+from .vk_tools import Vk, UserInfo, GroupInfo
 
 
 class Visualization:

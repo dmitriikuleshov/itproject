@@ -36,6 +36,9 @@
           if (document.getElementById('link_data').value !== '') {
               document.getElementById('message').style.color = 'black';
               document.getElementById('message').innerHTML = 'Поиск по базе данных ВК...';
+              {% if theme == 'dark' %}
+                  document.getElementById('message').style.color = 'white';
+              {% endif %}
               const _link = document.getElementById('link_data').value;
               window.location.href = '{% url 'user_info' %}?link=' + _link;
           }
@@ -171,7 +174,7 @@
                 <div class="text-38">Анализ активности</div>
                 <div class="text-39">
                   Изучите активность пользователя. Узнайте, в какие дни недели
-                  пользователь больше всего заходил в вк.
+                  пользователь больше всего заходил в ВК.
                 </div>
               </div>
               <div class="activity-button-4">

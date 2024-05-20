@@ -1,4 +1,5 @@
 """Обработка страниц приложения vkapi"""
+
 import os
 
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -6,6 +7,7 @@ from django.shortcuts import render, redirect
 
 from main.models import VkAccount
 from .visualization import Visualization
+from .gigachat_tools import get_written_squeeze
 from .vk_tools import Vk
 
 
@@ -32,18 +34,23 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     link = request.GET.get('link')
 
     try:
+        info = vk.get_info(link)
         response = render(
             request,
             'vkapi/user-info.html',
             {
-                'info': vk.get_info(link),
+                'info': info,
+                'text': get_written_squeeze(info),
                 'link': link,
                 'theme': request.COOKIES['theme']
             })
 
         if (not VkAccount.objects.filter(link=link, creator=request.COOKIES['login']).exists() and
                 not request.GET.get('save')):
-            VkAccount(link=link, creator=request.COOKIES['login']).save()
+            VkAccount(
+                link=link, first_name=info.get('first_name'), last_name=info.get('last_name'),
+                creator=request.COOKIES['login']
+            ).save()
 
         return response
 
@@ -55,8 +62,8 @@ def user_info_view(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
                 'error': True,
                 'login': request.COOKIES['login'],
                 'links': [{
-                    'name': str(elem).split('/')[-1],
-                    'link': elem
+                    'name': f'{elem.first_name} {elem.last_name}',
+                    'link': elem.link
                 } for elem in VkAccount.objects.filter(creator=request.COOKIES['login'])]
             }
         )
@@ -171,3 +178,41 @@ def toxicity_view(request: HttpRequest) -> HttpResponse:
         'toxicity': visualization.get_toxicity()
     })
 
+
+def acquaintances_view(request: HttpRequest) -> HttpResponse:
+    """
+    Возвращает фрейм с предложениями по знакомствам от GigaChat
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse | HttpResponseRedirect
+        Фрейм с предложениями по знакомствам от GigaChat
+
+    """
+    vk = Vk(token=os.environ['VK_TOKEN'])
+    return render(request, 'vkapi/acquaintances.html', {
+        'recommendations': vk.analyse_acquaintances(vk.get_info(request.GET.get('link')))
+    })
+
+
+def loader_view(request: HttpRequest) -> HttpResponse:
+    """
+    Возвращает фрейм с анимацией загрузки
+
+    Parameters
+    ----------
+    request: HttpRequest
+        Объект HTTP-запроса
+
+    Returns
+    -------
+    HttpResponse | HttpResponseRedirect
+        Фрейм с анимацией загрузки
+
+    """
+    return render(request, 'vkapi/loader.html')
