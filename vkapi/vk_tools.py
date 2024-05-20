@@ -281,7 +281,7 @@ class Vk:
             list_of_group_info.append(GroupInfo(
                 id=group.get('id'),
                 name=group.get('name'),
-                link=f'https://vk.com/{group['screen_name']}' if 'screen_name' in group.keys() else None,
+                link=f'https://vk.com/{group["screen_name"]}' if 'screen_name' in group.keys() else None,
                 photo=group.get('photo_50')
             ))
 

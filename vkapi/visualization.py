@@ -59,7 +59,7 @@ class Visualization:
         id_dict: dict = dict()
         for friend_info in self.vk_mutual_friends_info:
             self.mutual_graph.add_node(n_id=cur_id,
-                                       label=f'{friend_info[0].get('first_name')} {friend_info[0].get('last_name')}',
+                                       label=f'{friend_info[0].get("first_name")} {friend_info[0].get("last_name")}',
                                        shape='circularImage',
                                        image=friend_info[0].get('icon'),
                                        font={'size': 10},
