@@ -1,7 +1,8 @@
 """Функция анализа текстов на наличие нецензурной лексики"""
 
-from requests import get
 from typing import List, Tuple, Optional
+
+from requests import get
 
 
 def check_obscene_vocabulary(data: List[Tuple[str, str]]) -> List[Optional[str]]:
@@ -19,6 +20,7 @@ def check_obscene_vocabulary(data: List[Tuple[str, str]]) -> List[Optional[str]]
     -------
     List[Optional[str]]
         Список со ссылками на тексты с нецензурной лексикой
+
     """
     dictionary = get(
         'https://raw.githubusercontent.com/odaykhovskaya/obscene_words_ru/master/obscene_corpus.txt'

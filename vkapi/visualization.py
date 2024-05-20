@@ -1,12 +1,16 @@
-from pyvis.network import Network
-from .vk_tools import Vk, UserInfo, GroupInfo
+"""Класс, отвечающий за визуализацию связанной с анализом аккаунта информации"""
+
 from typing import List, Union, Tuple
-from copy import deepcopy
-import pandas as pd
 from collections import Counter
 from datetime import datetime
-import plotly.graph_objects as go
 import os
+
+from pyvis.network import Network
+from copy import deepcopy
+import pandas as pd
+import plotly.graph_objects as go
+
+from .vk_tools import Vk, UserInfo, GroupInfo
 
 
 class Visualization:
@@ -18,12 +22,16 @@ class Visualization:
         ----------
         link : str
             Ссылка на профиль пользователя во ВКонтакте.
+
         """
+        if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
+            open('vkapi/templates/vkapi/friends-graph.html', 'w').close()
+
         self.vk = Vk(token=os.environ['VK_TOKEN'])
         self.link = link
         self.user_info: UserInfo = self.vk.get_info(link)
         self.vk_mutual_friends_info = None
-        self.mutual_graph = Network(height='750px', width='700px', bgcolor='#222222', font_color='white')
+        self.mutual_graph = Network(height='590px', width='980px', bgcolor='#222222', font_color='white')
         self.activity_graph = None
 
     def create_mutual_friends_graph(self, link_to_save_graph: str) -> None:
@@ -34,6 +42,7 @@ class Visualization:
         ----------
         link_to_save_graph : str
             Ссылка, по которой будет сохранен граф.
+
         """
         self.vk_mutual_friends_info = self.vk.get_common_connections(self.link)
 
@@ -42,11 +51,15 @@ class Visualization:
                                    shape='circularImage',
                                    image=self.user_info['icon'], font={'size': 10}, size=25)
 
+        if self.vk_mutual_friends_info is None:
+            self.mutual_graph.save_graph(link_to_save_graph)
+            return
+
         cur_id = 0
         id_dict: dict = dict()
         for friend_info in self.vk_mutual_friends_info:
             self.mutual_graph.add_node(n_id=cur_id,
-                                       label=f'{friend_info[0].get('first_name')} {friend_info[0].get('last_name')}',
+                                       label=f'{friend_info[0].get("first_name")} {friend_info[0].get("last_name")}',
                                        shape='circularImage',
                                        image=friend_info[0].get('icon'),
                                        font={'size': 10},
@@ -75,9 +88,9 @@ class Visualization:
         -------
         Union[List[str], None]
             Список названий треков или None, если музыка отсутствует.
+
         """
         music = self.user_info['music']
-        print(music)
 
         if music is not None and len(music) > 3:
             return music[:3]
@@ -92,6 +105,7 @@ class Visualization:
         Tuple[str, List[str]]
             Кортеж, содержащий коэффициент токсичности в виде строки и список токсичных постов.
             Если у пользователя нет постов или ограничен доступ, возвращается соответствующее сообщение и пустой список.
+
         """
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
@@ -109,6 +123,7 @@ class Visualization:
         -------
         str
             Строка с коэффициентом токсичности или сообщением об отсутствии доступных постов.
+
         """
         all_posts = self.vk.get_activity(self.user_info, times=True)
         if all_posts is None or len(all_posts) == 0:
@@ -124,6 +139,7 @@ class Visualization:
         -------
         List[UserInfo]
             Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь.
+
         """
         subscriptions = self.user_info.get('subscriptions')
         user_subscriptions = subscriptions.get('users')
@@ -141,6 +157,7 @@ class Visualization:
         -------
         List[GroupInfo]
             Список объектов с информацией о группах, на которые подписан исследуемый пользователь.
+
         """
         subscriptions = self.user_info.get('subscriptions')
         group_subscriptions = subscriptions.get('groups')
@@ -158,6 +175,7 @@ class Visualization:
         ----------
         link_to_save_graph : str
             Ссылка, по которой будет сохранен HTML-файл с графиком.
+
         """
         # Загрузка данных активности пользователя
         post_dates_raw = self.vk.get_activity(self.user_info, times=True)
@@ -189,6 +207,7 @@ class Visualization:
 
         # Создание временного ряда
         fig = go.Figure()
+        fig.update_layout(width=1150, height=580)
 
         fig.add_trace(
             go.Scatter(x=final_df['Date'], y=final_df['Number of Posts'])
@@ -196,7 +215,7 @@ class Visualization:
 
         # Задание заголовка графика
         fig.update_layout(
-            title_text='User Posts Over Time with Range Slider'
+            title_text='График активности'
         )
 
         # Добавление ползунка выбора диапазона

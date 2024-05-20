@@ -1,3 +1,8 @@
-.venv/
-.idea/
-.lib/
+/.venv/
+/.idea/
+/lib/
+
+/vkapi/templates/vkapi/activity-graph.html
+/vkapi/templates/vkapi/friends-graph.html
+/vkapi/templates/vkapi/mutual-friends-graph.html
+/db.sqlite3
