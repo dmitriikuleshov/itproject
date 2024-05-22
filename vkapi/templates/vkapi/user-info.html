@@ -27,19 +27,19 @@
             (n.className += t + "touch");
       })(window, document);
       window.onload = function() {
-                  document.getElementById('subscriptions').src = '{% url 'subscriptions' %}?link={{ link }}';
-                  document.getElementById('subscriptions').onload = function () {
-                      document.getElementById('friends-graph').src = '{% url 'mutual_friends' %}?link={{ link }}';
-                      document.getElementById('friends-graph').onload = function() {
-                          document.getElementById('activity').src = '{% url 'activity' %}?link={{ link }}';
-                          document.getElementById('activity').onload = function() {
-                              document.getElementById('toxicity').src = '{% url 'toxicity' %}?link={{ link }}';
-                              document.getElementById('toxicity').onload = function () {
-                                  document.getElementById('acquaintances').src = '{% url 'acquaintances' %}?link={{ link }}';
-                              }
-                          }
+          document.getElementById('subscriptions').src = '{% url 'subscriptions' %}?link={{ link }}';
+          document.getElementById('subscriptions').onload = function () {
+              document.getElementById('friends-graph').src = '{% url 'mutual_friends' %}?link={{ link }}';
+              document.getElementById('friends-graph').onload = function() {
+                  document.getElementById('activity').src = '{% url 'activity' %}?link={{ link }}';
+                  document.getElementById('activity').onload = function() {
+                      document.getElementById('toxicity').src = '{% url 'toxicity' %}?link={{ link }}';
+                      document.getElementById('toxicity').onload = function () {
+                          document.getElementById('acquaintances').src = '{% url 'acquaintances' %}?link={{ link }}';
                       }
+                  }
               }
+          }
       }
     </script>
     <link rel="icon" href="{% static 'favicon.ico' %}">
@@ -50,6 +50,10 @@
     }
     * {
         font-family: Tahoma, sans-serif;
+    }
+    table, tr, th {
+        font-weight: normal;
+        width: 100%;
     }
   </style>
   </head>
@@ -152,23 +156,23 @@
         {{ text }}
         </div>
       <div class="container">
-          <p style="font-size: 130%">Подписки пользователя</p><hr>
+          <table><tr><th style="font-size: 130%">Подписки пользователя</th><th><button id="1" onclick="if (document.getElementById('1').innerHTML === 'Скрыть') {document.getElementById('subscriptions').style.display = 'none'; document.getElementById('1').innerHTML = 'Показать';} else { document.getElementById('subscriptions').style.display = 'block'; document.getElementById('1').innerHTML = 'Скрыть';}" class="button-6 w-button" style="margin-right: 45px">Скрыть</button></th></tr></table><hr>
           <iframe id="subscriptions" width="97%" height="630px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
-          <p style="font-size: 130%">Граф дружеских связей пользователя</p><hr>
+          <table><tr><th style="font-size: 130%">Граф дружеских связей пользователя</th><th><button id="2" onclick="if (document.getElementById('2').innerHTML === 'Скрыть') {document.getElementById('friends-graph').style.display = 'none'; document.getElementById('2').innerHTML = 'Показать';} else { document.getElementById('friends-graph').style.display = 'block'; document.getElementById('2').innerHTML = 'Скрыть';}" class="button-6 w-button" style="margin-right: 45px">Скрыть</button></th></tr></table><hr>
           <iframe id="friends-graph" width="1000px" height="610px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
-          <p style="font-size: 130%">График активности пользователя</p><hr>
+          <table><tr><th style="font-size: 130%">График активности пользователя</th><th><button id="3" onclick="if (document.getElementById('3').innerHTML === 'Скрыть') {document.getElementById('activity').style.display = 'none'; document.getElementById('3').innerHTML = 'Показать';} else { document.getElementById('activity').style.display = 'block'; document.getElementById('3').innerHTML = 'Скрыть';}" class="button-6 w-button" style="margin-right: 45px">Скрыть</button></th></tr></table><hr>
           <iframe id="activity" width="1170px" height="600px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
-          <p style="font-size: 130%">Сведения о токсичности пользователя</p><hr>
+          <table><tr><th style="font-size: 130%">Сведения о токсичности пользователя</th><th><button id="4" onclick="if (document.getElementById('4').innerHTML === 'Скрыть') {document.getElementById('toxicity').style.display = 'none'; document.getElementById('4').innerHTML = 'Показать';} else { document.getElementById('toxicity').style.display = 'block'; document.getElementById('4').innerHTML = 'Скрыть';}" class="button-6 w-button" style="margin-right: 45px">Скрыть</button></th></tr></table><hr>
           <iframe id="toxicity" width="470px" height="200px" src="{% url 'loader' %}"></iframe>
       </div>
       <div class="container">
-          <p style="font-size: 130%">Рекомендации по знакомствам (с использованием GigaChat)</p><hr>
+          <table><tr><th style="font-size: 130%">Рекомендации по знакомствам (с использованием GigaChat)</th><th><button id="5" onclick="if (document.getElementById('5').innerHTML === 'Скрыть') {document.getElementById('acquaintances').style.display = 'none'; document.getElementById('5').innerHTML = 'Показать';} else { document.getElementById('acquaintances').style.display = 'block'; document.getElementById('5').innerHTML = 'Скрыть';}" class="button-6 w-button" style="margin-right: 45px">Скрыть</button></th></tr></table><hr>
           <iframe id="acquaintances" width="97%" height="630px" src="{% url 'loader' %}"></iframe>
       </div>
       </center>
