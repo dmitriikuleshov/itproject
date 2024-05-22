@@ -148,11 +148,11 @@ class Vk:
 
         """
         _id = self.get_id_from_link(link)
-        raw: dict = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
-                                                            'country, city, activities, '
-                                                            'books, education, games, '
-                                                            'interests, movies, music, personal, '
-                                                            'counters, photo_50')[0]
+        raw_dict = self.__vk.users.get(user_id=_id, fields='first_name, last_name, bdate, '
+                                                           'country, city, activities, '
+                                                           'books, education, games, '
+                                                           'interests, movies, music, personal, '
+                                                           'counters, photo_50')[0]
 
         try:
             friends = self.__vk.friends.get(user_id=_id, order='hints')['items']
@@ -164,10 +164,10 @@ class Vk:
             friends = sub_users = sub_groups = posts = None
 
         user_university = University(
-            name=raw.get('university_name'),
-            faculty=raw.get('faculty_name'),
-            form=raw.get('education_form'),
-            graduation=raw.get('graduation')
+            name=raw_dict.get('university_name'),
+            faculty=raw_dict.get('faculty_name'),
+            form=raw_dict.get('education_form'),
+            graduation=raw_dict.get('graduation')
         )
 
         user_subscriptions = Subscriptions(
@@ -177,24 +177,24 @@ class Vk:
 
         user_info = UserInfo(
             id=_id,
-            first_name=raw.get('first_name'),
-            last_name=raw.get('last_name'),
-            birthday=raw.get('bdate'),
-            country=raw['country']['title'] if 'country' in raw.keys() else None,
-            city=raw['city']['title'] if 'city' in raw.keys() else None,
-            interests=raw.get('interests'),
-            books=raw.get('books'),
-            games=raw.get('games'),
-            movies=raw.get('movies'),
-            activities=raw.get('activities'),
-            music=raw.get('music'),
+            first_name=raw_dict.get('first_name'),
+            last_name=raw_dict.get('last_name'),
+            birthday=raw_dict.get('bdate'),
+            country=raw_dict['country']['title'] if 'country' in raw_dict.keys() else None,
+            city=raw_dict['city']['title'] if 'city' in raw_dict.keys() else None,
+            interests=raw_dict.get('interests'),
+            books=raw_dict.get('books'),
+            games=raw_dict.get('games'),
+            movies=raw_dict.get('movies'),
+            activities=raw_dict.get('activities'),
+            music=raw_dict.get('music'),
             university=user_university,
-            friends_count=raw['counters'].get('friends'),
-            followers_count=raw['counters'].get('followers'),
+            friends_count=raw_dict['counters'].get('friends'),
+            followers_count=raw_dict['counters'].get('followers'),
             friends=friends,
             subscriptions=user_subscriptions,
             post_dates=posts,
-            icon=raw.get('photo_50')
+            icon=raw_dict.get('photo_50')
         )
 
         return user_info

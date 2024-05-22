@@ -14,14 +14,48 @@ from .vk_tools import Vk, UserInfo, GroupInfo
 
 
 class Visualization:
+    """
+    Функции обработки данных API VK и визуализации графов
+    и графиков с преобразованием в формат HTML
+
+    Attributes
+    ----------
+    vk: Vk
+        Объект доступа к API VK
+    link: str
+        Ссылка на анализируемый аккаунт
+    user_info: UserInfo
+        Объект с данными об аккаунте VK
+    vk_mutual_friends_info: List[Tuple[UserInfo, Optional[List[UserInfo]]]] | None
+        Массив данных об общих связях друзей пользователя
+    mutual_graph: Network
+        Граф дружеских связей пользователя
+
+    Methods
+    -------
+    create_mutual_friends_graph(link_to_save_graph)
+        Создает и сохраняет визуализацию графа1 общих друзей пользователя
+    get_toxicity()
+        Определяет коэффициент токсичности и список токсичных постов
+    _get_toxicity_coefficient()
+        Определяет коэффициент токсичности
+    get_user_subscriptions()
+        Возвращает список подписок пользователя на других пользователей
+    get_group_subscriptions()
+        Возвращает список подписок пользователя на сообщества
+    create_activity_graph(link_to_save_graph)
+        Создание графика активности пользователя
+
+    """
+
     def __init__(self, link: str):
         """
-        Инициализирует объект Visualization для визуализации данных VK.
+        Инициализирует объект Visualization для визуализации данных VK
 
         Parameters
         ----------
         link : str
-            Ссылка на профиль пользователя во ВКонтакте.
+            Ссылка на профиль пользователя во ВКонтакте
 
         """
         if not os.path.exists('vkapi/templates/vkapi/friends-graph.html'):
@@ -29,19 +63,18 @@ class Visualization:
 
         self.vk = Vk(token=os.environ['VK_TOKEN'])
         self.link = link
-        self.user_info: UserInfo = self.vk.get_info(link)
+        self.user_info = self.vk.get_info(link)
         self.vk_mutual_friends_info = None
         self.mutual_graph = Network(height='590px', width='980px', bgcolor='#222222', font_color='white')
-        self.activity_graph = None
 
     def create_mutual_friends_graph(self, link_to_save_graph: str) -> None:
         """
-        Создает и сохраняет визуализацию сети общих друзей пользователя.
+        Создает и сохраняет визуализацию сети общих друзей пользователя
 
         Parameters
         ----------
         link_to_save_graph : str
-            Ссылка, по которой будет сохранен граф.
+            Ссылка, по которой будет сохранен граф
 
         """
         self.vk_mutual_friends_info = self.vk.get_common_connections(self.link)
@@ -56,7 +89,7 @@ class Visualization:
             return
 
         cur_id = 0
-        id_dict: dict = dict()
+        id_dict = dict()
         for friend_info in self.vk_mutual_friends_info:
             self.mutual_graph.add_node(n_id=cur_id,
                                        label=f'{friend_info[0].get("first_name")} {friend_info[0].get("last_name")}',
@@ -80,101 +113,92 @@ class Visualization:
         # saving graph
         self.mutual_graph.save_graph(link_to_save_graph)
 
-    def get_favourite_music(self) -> Union[List[str], None]:
-        """
-        Возвращает список из трех любимых музыкальных треков пользователя.
-
-        Returns
-        -------
-        Union[List[str], None]
-            Список названий треков или None, если музыка отсутствует.
-
-        """
-        music = self.user_info['music']
-
-        if music is not None and len(music) > 3:
-            return music[:3]
-        return music
-
     def get_toxicity(self) -> Tuple[str, Union[List[str], None], List[str]]:
         """
-        Определяет коэффициент токсичности и возвращает список токсичных постов пользователя.
+        Определяет коэффициент токсичности и возвращает список токсичных постов пользователя
 
         Returns
         -------
         Tuple[str, List[str]]
-            Кортеж, содержащий коэффициент токсичности в виде строки и список токсичных постов.
-            Если у пользователя нет постов или ограничен доступ, возвращается соответствующее сообщение и пустой список.
+            Кортеж, содержащий коэффициент токсичности в виде строки и
+            список токсичных постов. Если у пользователя нет постов или
+            ограничен доступ, возвращается соответствующее сообщение и пустой список
 
         """
         try:
             toxic_posts = self.vk.check_toxicity(self.user_info)
-            toxicity_coeff = self.get_toxicity_coefficient()
+            toxicity_coeff = self._get_toxicity_coefficient()
             all_posts = self.user_info.get('post_dates')
             return toxicity_coeff, all_posts, toxic_posts
         except TypeError:
             return 'У пользователя нет постов или он ограничил доступ к своим записям', [], []
 
-    def get_toxicity_coefficient(self) -> str:
+    def _get_toxicity_coefficient(self) -> str:
         """
-        Рассчитывает коэффициент токсичности постов пользователя.
+        Рассчитывает коэффициент токсичности постов пользователя
 
         Returns
         -------
         str
-            Строка с коэффициентом токсичности или сообщением об отсутствии доступных постов.
+            Строка с коэффициентом токсичности или сообщением об отсутствии доступных постов
 
         """
         all_posts = self.vk.get_activity(self.user_info, times=True)
+
         if all_posts is None or len(all_posts) == 0:
             return 'У пользователя нет постов или он ограничил доступ к своим записям'
+
         return str(round((len(self.vk.check_toxicity(self.user_info)) /
                           len(all_posts)), 2))
 
     def get_user_subscriptions(self) -> List[UserInfo]:
         """
-        Возвращает список подписок пользователя на других пользователей (не более пяти).
+        Возвращает список подписок пользователя на других пользователей (не более пяти)
 
         Returns
         -------
         List[UserInfo]
-            Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь.
+            Список объектов с информацией о пользователях, на которых подписан исследуемый пользователь
 
         """
         subscriptions = self.user_info.get('subscriptions')
         user_subscriptions = subscriptions.get('users')
+
         if user_subscriptions is not None:
             if len(user_subscriptions) > 5:
                 user_subscriptions = user_subscriptions[:5]
             return self.vk.get_users_list_info(user_subscriptions)
+
         return []
 
     def get_group_subscriptions(self) -> List[GroupInfo]:
         """
-        Возвращает список подписок пользователя на группы (не более пяти).
+        Возвращает список подписок пользователя на группы (не более пяти)
 
         Returns
         -------
         List[GroupInfo]
-            Список объектов с информацией о группах, на которые подписан исследуемый пользователь.
+            Список объектов с информацией о группах, на которые подписан исследуемый пользователь
 
         """
         subscriptions = self.user_info.get('subscriptions')
         group_subscriptions = subscriptions.get('groups')
+
         if group_subscriptions is not None:
             if len(group_subscriptions) > 5:
                 group_subscriptions = group_subscriptions[:5]
             return self.vk.get_groups_list_info(group_subscriptions)
+
         return []
 
     def create_activity_graph(self, link_to_save_graph: str) -> None:
         """
-        Создает и сохраняет интерактивный график активности пользователя в виде HTML-файла.
+        Создает и сохраняет интерактивный график активности пользователя в виде HTML-файла
 
         Parameters
         ----------
         link_to_save_graph : str
-            Ссылка, по которой будет сохранен HTML-файл с графиком.
+            Ссылка, по которой будет сохранен HTML-файл с графиком
 
         """
         # Загрузка данных активности пользователя
