@@ -6,10 +6,14 @@
 
 ## *Установка и начало работы*
 
-- Склонировать репозиторий: ```git clone https://github.com/dmitriikuleshov/itproject.git```
-- Установить зависимости: ```pip install -r requirements.txt```
-- Произвести миграции базы данных: ```python manage.py migrate```
-- Запустить сервер: ```python manage.py runserver```
+- Создать виртуальное окружение Python (в случае отсутствия)
+- Склонировать репозиторий: `git clone https://github.com/dmitriikuleshov/itproject.git`
+- Установить зависимости: `pip install -r requirements.txt`
+- Произвести миграции базы данных: `python manage.py migrate`
+- Установить переменные окружения:
+    - `VK_TOKEN` Ключ доступа VK API ([Получить](https://vkhost.github.io))
+    - `GIGACHAT_TOKEN` Ключ доступа GigaChat API ([Получить](https://developers.sber.ru/docs/ru/gigachat/individuals-quickstart))
+- Запустить сервер: `python manage.py runserver`
 
 ## *Работа веб-платформы:*
 Наш сервис позволит вам проанализировать ваш или чужой аккаунт в соцсети вконтакте.
