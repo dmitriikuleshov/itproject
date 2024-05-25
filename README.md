@@ -19,41 +19,41 @@
 Наш сервис позволит вам проанализировать ваш или чужой аккаунт в соцсети вконтакте.
 Первым делом вам предстоит зарегистрироваться:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Регистрация.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Регистрация.gif)
 
 Затем вам следует выбрать заинтересовавший вас аккаунт и ввести ссылку на него в строку поиска. После непродолжительной загрузки в первую очередь вы увидите имя и фамилию пользователя, фотографию профиля, основную информацию и выжимку об аккаунте от нейросети GIGACHAT:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Поиск.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Поиск.gif)
 
 Если это не первый раз, когда вы используете наш сервис, вы можете сразу выбрать аккаунт, который уже изучали из истории:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/История.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/История.gif)
 
 Благодаря нашему сервису вы можете увидеть:
 
 Подписки пользователя:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Подписки.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Подписки.gif)
 
 Граф дружеских связей:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Граф%20связей.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Граф%20связей.gif)
 
 График активности пользователя:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/График%20активности.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/График%20активности.gif)
 
 Анализ токсичности пользователя с ссылками на токсичные посты:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Токсичность.png)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Токсичность.png)
 
 Рекомендацию по знакомствам от нейросети GIGACHAT:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Рекомендации%20знакомств.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Рекомендации%20знакомств.gif)
 
 Также наша веб-платформа предлагает вам как светлую, так и тёмную тему:
 
-![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/README-and-presentation/docs/media/Смена%20темы.gif)
+![Alt Text](https://github.com/dmitriikuleshov/itproject/blob/main/docs/media/Смена%20темы.gif)
 
 
 ## *Структура Django-проекта*:
